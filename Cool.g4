@@ -16,21 +16,17 @@ expr : INT                                        # int_const
      | (TRUE | FALSE)                             # bool_const
      | STRING                                     # str_const
      | '(' expr ')'                               # parens
-     | expr '/' expr                              # divide
-     | expr '*' expr                              # multiply
-     | expr '+' expr                              # add
-     | expr '-' expr                              # minus
      | '~' expr                                   # negate
-     | expr '<' expr                              # lt
-     | expr '<=' expr                             # leq
-     | expr '=' expr                              # eq
-     | NOT expr                                   # not
-     | OBJECTID                                   # object
      | ISVOID expr                                # isvoid
+     | expr ('/' | '*') expr                      # mul_div
+     | expr ('+' | '-') expr                      # add_sub
+     | expr ('<=' | '<' | '=') expr               # compare
+     | NOT expr                                   # not
+     | OBJECTID '<-' expr                         # assign
+     | OBJECTID                                   # object
      | NEW TYPEID                                 # new
      | IF expr THEN expr ELSE expr FI             # conditional
      | WHILE expr LOOP expr POOL                  # loop
-     | OBJECTID '<-' expr                         # assign
      | CASE expr OF branch+ ESAC                  # case
      | '{' (expr ';')+ '}' .                      # block
      | expr '@' TYPEID '.' OBJECTID '(' args? ')' # static_dispatch
@@ -46,6 +42,14 @@ args: expr (',' expr)* ;
 letvar : OBJECTID ':' TYPEID ('<-' expr)? ;
 
 INT : [0-9]+ ;
+
+DIV : '/' ;
+MUL : '*' ;
+ADD : '+' ;
+SUB : '-' ;
+LTE : '<=' ;
+LT : '<' ;
+EQ : '=' ;
 
 // TODO: this doesn't match Cool's definition of a string
 STRING : '"' ( ESC | . )*? '"' ;
@@ -79,7 +83,7 @@ OBJECTID: [a-z][A-Za-z0-9_]* ;
 
 BLOCK_COMMENT: '(*' .*? '*)' -> skip ; // TODO: handle nested
 LINE_COMMENT : '--' .*? '\n' -> skip ;
-WS : [ \t\n]+ -> skip ;
+WS : [ \n\f\r\t]+ -> skip ;
 
 // case insensitive letters for keywords
 fragment A : [aA];
