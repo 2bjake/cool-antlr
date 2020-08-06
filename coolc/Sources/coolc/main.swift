@@ -15,7 +15,7 @@ func main(_ args: [String]) throws {
     let lexer = CoolLexer(inputStream)
     let tokens = CommonTokenStream(lexer)
     let parser = try! CoolParser(tokens)
-    let tree = try! parser.program()
+    let tree = try! parser.allTokens()
 
     let walker = ParseTreeWalker()
     let listener = MyListener()

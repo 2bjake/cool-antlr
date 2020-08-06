@@ -20,7 +20,7 @@ expr : INT                                        # intConst
      | ISVOID expr                                # isvoid
      | expr (MUL | DIV) expr                      # mulDiv
      | expr (ADD | SUB) expr                      # addSub
-     | expr (LTE | LT | EQ) expr                  # compare
+     | expr (LE | LT | EQ) expr                   # compare
      | NOT expr                                   # not
      | OBJECTID '<-' expr                         # assign
      | OBJECTID                                   # object
@@ -28,7 +28,7 @@ expr : INT                                        # intConst
      | IF expr THEN expr ELSE expr FI             # conditional
      | WHILE expr LOOP expr POOL                  # loop
      | CASE expr OF branch+ ESAC                  # case
-     | '{' (expr ';')+ '}' .                      # block
+     | '{' (expr ';')+ '}'                        # block
      | expr '@' TYPEID '.' OBJECTID '(' args? ')' # staticDispatch
      | expr '.' OBJECTID '(' args? ')'            # selfDispatch
      | OBJECTID '(' args? ')'                     # dispatch
@@ -41,19 +41,45 @@ args: expr (',' expr)* ;
 
 letvar : OBJECTID ':' TYPEID ('<-' expr)? ;
 
+allTokens: token* ;
+
+token: INT # int
+     | STRING # string
+     | (TRUE | FALSE) # bool
+     | (CLASS | IF | THEN | ELSE | FI | IN | INHERITS | LET | WHILE | LOOP | POOL | CASE | ESAC | OF | NEW | ISVOID | NOT) #keyword
+     | TYPEID # typeid
+     | OBJECTID #objectid
+     | '<-' # assignToken
+     | '=>' # darrow
+     | LE  # le
+     | (LT | EQ | MUL | DIV | ADD | SUB | ':' | ';' | '(' | ')' | '{' | '}' | '@' | '~'  | ';' | ',' | '.') # singleChar
+     | UNTERM # unterminatedString
+     | ERROR # error
+     ;
 INT : [0-9]+ ;
 
 MUL : '*' ;
 DIV : '/' ;
 ADD : '+' ;
 SUB : '-' ;
-LTE : '<=' ;
+LE : '<=' ;
 LT : '<' ;
 EQ : '=' ;
 
-// TODO: this doesn't match Cool's definition of a string
-STRING : '"' ( ESC | . )*? '"' ;
-fragment ESC : '\\' [btnr"\\] ;
+STRING : '"' CHARS? '"' ;
+
+UNTERM: '"' CHARS? '\n'
+      | '"' CHARS? EOF
+      ;
+
+fragment
+CHARS : CHAR+ ;
+
+fragment
+CHAR
+    :   ~["\\\n]
+    |   '\\' .
+    ;
 
 // keywords
 CLASS : C L A S S ;
@@ -84,6 +110,8 @@ OBJECTID: [a-z][A-Za-z0-9_]* ;
 BLOCK_COMMENT: '(*' .*? '*)' -> skip ; // TODO: handle nested
 LINE_COMMENT : '--' .*? '\n' -> skip ;
 WS : [ \n\f\r\t]+ -> skip ;
+
+ERROR: . ;
 
 // case insensitive letters for keywords
 fragment A : [aA];
