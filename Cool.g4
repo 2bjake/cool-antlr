@@ -1,8 +1,8 @@
 grammar Cool;
 
-program : class_* ;
+program : classDecl* ;
 
-class_ : CLASS TYPEID (INHERITS TYPEID)? '{' feature* '}' ';' ;
+classDecl : CLASS TYPEID (INHERITS TYPEID)? '{' feature* '}' ';' ;
 
 feature : OBJECTID ':' TYPEID ('<-' expr)? ';'                  # attr
         | OBJECTID '(' formals ')' ':' TYPEID '{' expr '}' ';'  # method
@@ -12,15 +12,15 @@ formals: ( formal (',' formal)* )? ;
 
 formal : OBJECTID ':' TYPEID ;
 
-expr : INT                                        # int_const
-     | (TRUE | FALSE)                             # bool_const
-     | STRING                                     # str_const
+expr : INT                                        # intConst
+     | (TRUE | FALSE)                             # boolConst
+     | STRING                                     # stringConst
      | '(' expr ')'                               # parens
      | '~' expr                                   # negate
      | ISVOID expr                                # isvoid
-     | expr ('/' | '*') expr                      # mul_div
-     | expr ('+' | '-') expr                      # add_sub
-     | expr ('<=' | '<' | '=') expr               # compare
+     | expr (MUL | DIV) expr                      # mulDiv
+     | expr (ADD | SUB) expr                      # addSub
+     | expr (LTE | LT | EQ) expr                  # compare
      | NOT expr                                   # not
      | OBJECTID '<-' expr                         # assign
      | OBJECTID                                   # object
@@ -29,8 +29,8 @@ expr : INT                                        # int_const
      | WHILE expr LOOP expr POOL                  # loop
      | CASE expr OF branch+ ESAC                  # case
      | '{' (expr ';')+ '}' .                      # block
-     | expr '@' TYPEID '.' OBJECTID '(' args? ')' # static_dispatch
-     | expr '.' OBJECTID '(' args? ')'            # self_dispatch
+     | expr '@' TYPEID '.' OBJECTID '(' args? ')' # staticDispatch
+     | expr '.' OBJECTID '(' args? ')'            # selfDispatch
      | OBJECTID '(' args? ')'                     # dispatch
      | LET letvar (',' letvar)* IN expr           # let
      ;
@@ -43,8 +43,8 @@ letvar : OBJECTID ':' TYPEID ('<-' expr)? ;
 
 INT : [0-9]+ ;
 
-DIV : '/' ;
 MUL : '*' ;
+DIV : '/' ;
 ADD : '+' ;
 SUB : '-' ;
 LTE : '<=' ;
@@ -57,16 +57,16 @@ fragment ESC : '\\' [btnr"\\] ;
 
 // keywords
 CLASS : C L A S S ;
+IF : I F ;
+THEN : T H E N ;
 ELSE : E L S E ;
 FI : F I ;
-IF : I F ;
 IN : I N ;
 INHERITS : I N H E R I T S ;
 LET : L E T ;
+WHILE : W H I L E ;
 LOOP : L O O P ;
 POOL : P O O L ;
-THEN : T H E N ;
-WHILE : W H I L E ;
 CASE: C A S E ;
 ESAC: E S A C ;
 OF: O F ;

@@ -1,0 +1,8 @@
+.DS_Store
+/.build
+/.swiftpm
+Package.resolved
+/Packages
+/Sources/coolc/gen
+/*.xcodeproj
+xcuserdata/
