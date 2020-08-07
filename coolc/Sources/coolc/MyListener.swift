@@ -45,37 +45,49 @@ class MyListener: CoolBaseListener {
         printToken(symbol.getLine(), "INT_CONST", text)
     }
 
+    func processChar(_ c: Character) -> String {
+        switch c {
+            case "\n": return "\\n"
+            case "\t": return "\\t"
+            case "\u{000C}": return "\\f"
+            case "\u{0008}": return "\\b"
+            default:
+                if let asciiVal = c.asciiValue, asciiVal > 0, asciiVal <= 31 {
+                    return "\\0\(String(asciiVal, radix: 8))"
+                } else {
+                    return "\(c)"
+                }
+        }
+    }
+
     override func enterString(_ ctx: CoolParser.StringContext) {
         guard let symbol = ctx.STRING()?.getSymbol() else { fatalError() }
         guard let rawText = symbol.getText() else { fatalError() }
 
+        // token has start and end double quotes. Strip them off.
+        let stripped = rawText.dropFirst().dropLast()
+
         // TODO: for now, rewrite string for output, later figure out how to persist in tree
         var processed = ""
-        var index = rawText.startIndex
-        while index != rawText.endIndex {
-            let next = rawText.index(after: index)
-            if rawText[index] == "\t" {
-                processed.append("\\t")
+        var index = stripped.startIndex
+        while index != stripped.endIndex {
+            let next = stripped.index(after: index)
+            if stripped[index] != "\\" {
+                processed.append(processChar(stripped[index]))
                 index = next
-            } else if rawText[index] != "\\" {
-                processed.append(rawText[index])
-                index = next
-            } else if next != rawText.endIndex {
-                switch rawText[next] {
-                    case "\n":
-                        processed.append("\\n")
+            } else {
+                precondition(next != stripped.endIndex)
+                switch stripped[next] {
                     case "b", "t", "n", "f", "\\", "\"":
                         processed.append("\\")
-                        processed.append(rawText[next])
+                        processed.append(stripped[next])
                     default:
-                        processed.append(rawText[next])
+                        processed.append(processChar(stripped[next]))
                 }
-                index = rawText.index(after: next)
-            } else {
-                // TODO: EOF?
+                index = stripped.index(after: next)
             }
         }
-        printToken(symbol.getLine(), "STR_CONST", processed)
+        printToken(symbol.getLine(), "STR_CONST", "\"\(processed)\"")
     }
 
     override func enterBool(_ ctx: CoolParser.BoolContext) {
@@ -130,6 +142,8 @@ class MyListener: CoolBaseListener {
         printToken(symbol.getLine(), "OBJECTID", text)
     }
 
+    // errors
+
     override func enterUnterminatedString(_ ctx: CoolParser.UnterminatedStringContext) {
         guard let token = ctx.getStart() else { fatalError() }
         if token.getText()?.last == "\n" {
@@ -139,7 +153,10 @@ class MyListener: CoolBaseListener {
         }
     }
 
-    // errors
+    override func enterUnmatchedComment(_ ctx: CoolParser.UnmatchedCommentContext) {
+        guard let token = ctx.getStart() else { fatalError() }
+        printError(token.getLine(), "Unmatched *)")
+    }
 
     override func enterInvalid(_ ctx: CoolParser.InvalidContext) {
         guard let token = ctx.getStart() else { fatalError() }

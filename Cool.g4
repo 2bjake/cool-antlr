@@ -54,11 +54,14 @@ token: INT # int
      | LE  # le
      | (LT | EQ | MUL | DIV | ADD | SUB | ':' | ';' | '(' | ')' | '{' | '}' | '@' | '~'  | ';' | ',' | '.') # singleChar
      | UNTERMINATED_STRING # unterminatedString
+     | UNMATCHED_COMMENT # unmatchedComment
      | ERROR # error
      | INVALID # invalid
      ;
 
 INVALID: '\u0001' | '\u0002' | '\u0003' | '\u0004' ;
+
+UNMATCHED_COMMENT : '*)' ;
 
 INT : [0-9]+ ;
 
@@ -111,8 +114,8 @@ FALSE : 'f' A L S E ; // must start with lowercase f
 TYPEID: [A-Z][A-Za-z0-9_]* ;
 OBJECTID: [a-z][A-Za-z0-9_]* ;
 
-BLOCK_COMMENT: '(*' .*? '*)' -> skip ; // TODO: handle nested
-LINE_COMMENT : '--' .*? '\n' -> skip ;
+BLOCK_COMMENT : '(*' (BLOCK_COMMENT | . )*? '*)' -> skip ; // TODO: this isn't quite right, but good enough for now...
+LINE_COMMENT : '--' .*? ('\n' | EOF) -> skip ;
 WS : [ \n\f\r\t]+ -> skip ;
 VT : '\u000B' -> skip ;
 
