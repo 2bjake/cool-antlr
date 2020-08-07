@@ -54,7 +54,10 @@ class MyListener: CoolBaseListener {
         var index = rawText.startIndex
         while index != rawText.endIndex {
             let next = rawText.index(after: index)
-            if rawText[index] != "\\" {
+            if rawText[index] == "\t" {
+                processed.append("\\t")
+                index = next
+            } else if rawText[index] != "\\" {
                 processed.append(rawText[index])
                 index = next
             } else if next != rawText.endIndex {
@@ -134,6 +137,21 @@ class MyListener: CoolBaseListener {
         } else {
             printError(token.getLine(), "EOF in string constant")
         }
+    }
+
+    // errors
+
+    override func enterInvalid(_ ctx: CoolParser.InvalidContext) {
+        guard let token = ctx.getStart() else { fatalError() }
+        let str: String
+        switch token.getText() {
+            case "\u{0001}": str = "\001"
+            case "\u{0002}": str = "\002"
+            case "\u{0003}": str = "\003"
+            case "\u{0004}": str = "\004"
+            default: str = ""
+        }
+        printError(token.getLine(), str)
     }
 
     override func enterError(_ ctx: CoolParser.ErrorContext) {

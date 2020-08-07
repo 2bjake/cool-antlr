@@ -53,9 +53,13 @@ token: INT # int
      | '=>' # darrow
      | LE  # le
      | (LT | EQ | MUL | DIV | ADD | SUB | ':' | ';' | '(' | ')' | '{' | '}' | '@' | '~'  | ';' | ',' | '.') # singleChar
-     | UNTERM # unterminatedString
+     | UNTERMINATED_STRING # unterminatedString
      | ERROR # error
+     | INVALID # invalid
      ;
+
+INVALID: '\u0001' | '\u0002' | '\u0003' | '\u0004' ;
+
 INT : [0-9]+ ;
 
 MUL : '*' ;
@@ -68,9 +72,9 @@ EQ : '=' ;
 
 STRING : '"' CHARS? '"' ;
 
-UNTERM: '"' CHARS? '\n'
-      | '"' CHARS? EOF
-      ;
+UNTERMINATED_STRING : '"' CHARS? '\n'
+                    | '"' CHARS? EOF
+                    ;
 
 fragment
 CHARS : CHAR+ ;
@@ -110,6 +114,7 @@ OBJECTID: [a-z][A-Za-z0-9_]* ;
 BLOCK_COMMENT: '(*' .*? '*)' -> skip ; // TODO: handle nested
 LINE_COMMENT : '--' .*? '\n' -> skip ;
 WS : [ \n\f\r\t]+ -> skip ;
+VT : '\u000B' -> skip ;
 
 ERROR: . ;
 
