@@ -7,11 +7,6 @@
 import Antlr4
 import Foundation
 
-extension CoolParser.TokenContext {
-    var lineNum: Int { getStart()!.getLine() }
-    var text: String { getStart()!.getText()! }
-}
-
 class PA1Listener: CoolBaseListener {
 
     private func printToken(_ symbol: String, _ ctx: CoolParser.TokenContext) {
@@ -138,7 +133,7 @@ class PA1Listener: CoolBaseListener {
     }
 
     override func enterError(_ ctx: CoolParser.ErrorContext) {
-        var message = ctx.text == "\\" ? "\\\\" : ctx.text
+        let message = ctx.text == "\\" ? "\\\\" : ctx.text
         printError(message, ctx.lineNum)
     }
 }

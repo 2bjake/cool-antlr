@@ -36,15 +36,26 @@ func pa2(_ args: [String]) throws {
     let lexer = CoolLexer(inputStream)
     let tokens = CommonTokenStream(lexer)
     let parser = try! CoolParser(tokens)
+    let errorStrategy = PA2ErrorStrategy()
+    parser.setErrorHandler(errorStrategy)
+    parser.removeErrorListeners()
+
+    let errorListener = PA2ErrorListener()
+    parser.addErrorListener(errorListener)
+
     let tree = try! parser.program()
 
     let walker = ParseTreeWalker()
     let listener = PA2Listener()
     try! walker.walk(listener, tree)
+
+    if errorListener.errorCount > 0 || listener.errorCount > 0 {
+        errPrint("Compilation halted due to lex and syntax errors")
+    }
 }
 
 do {
-    try pa1(CommandLine.arguments)
+    try pa2(CommandLine.arguments)
 } catch (let e) {
     print("Program failed with error: \(e)")
 }
