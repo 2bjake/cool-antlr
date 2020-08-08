@@ -18,8 +18,8 @@ expr : Int                                        # intConst
      | '(' expr ')'                               # parens
      | '~' expr                                   # negate
      | Isvoid expr                                # isvoid
-     | expr (Star | Divide) expr                  # mulDiv
-     | expr (Plus | Minus) expr                   # addSub
+     | expr (Star | Divide) expr                  # arith
+     | expr (Plus | Minus) expr                   # arith
      | expr (LessEqual | Less | Equal) expr       # compare
      | Not expr                                   # not
      | ObjectId '<-' expr                         # assign

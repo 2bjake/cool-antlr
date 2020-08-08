@@ -21,6 +21,45 @@ struct Indention: CustomStringConvertible {
 
 }
 
+enum ArithOp: String {
+    case plus = "_plus"
+    case sub = "_sub"
+    case mul = "_mul"
+    case div = "_divide"
+}
+
+enum CompOp: String {
+    case eq = "_eq"
+    case lt = "_lt"
+    case le = "_le"
+}
+
+extension CoolParser.ArithContext {
+    var op: ArithOp {
+        if Plus() != nil {
+            return .plus
+        } else if Minus() != nil {
+            return .sub
+        } else if Star() != nil {
+            return .mul
+        } else {
+            return .div
+        }
+    }
+}
+
+extension CoolParser.CompareContext {
+    var op: CompOp {
+        if Less() != nil {
+            return .lt
+        } else if LessEqual() != nil {
+            return .le
+        } else {
+            return .eq
+        }
+    }
+}
+
 extension ParserRuleContext {
     var name: String {
         switch self {
@@ -34,18 +73,11 @@ extension ParserRuleContext {
             case is CoolParser.StringConstContext: return "_string"
             case is CoolParser.IntConstContext: return "_int"
             case is CoolParser.BlockContext: return "_block"
-            case let addSub as CoolParser.AddSubContext:
-                return addSub.Plus() == nil ? "_sub" : "_plus"
-            case let mulDiv as CoolParser.MulDivContext:
-                return mulDiv.Star() == nil ? "_div" : "_mul"
+            case let arith as CoolParser.ArithContext: return arith.op.rawValue
             case is CoolParser.NegateContext: return "_neg"
             case is CoolParser.ObjectContext: return "_object"
             case is CoolParser.IsvoidContext: return "_isvoid"
-            case let comp as CoolParser.CompareContext:
-                if comp.Less() != nil { return "_lt" }
-                if comp.LessEqual() != nil { return "_le" }
-                if comp.Equal() != nil { return "_eq" }
-                return "unknown"
+            case let comp as CoolParser.CompareContext: return comp.op.rawValue
             case is CoolParser.LetContext: return "_let"
             case is CoolParser.AssignContext: return "_assign"
             case is CoolParser.ConditionalContext: return "_cond"
@@ -168,11 +200,7 @@ class PA2Visitor: CoolBaseVisitor<Void> {
         return printInternals(ctx: ctx) { visitChildren(ctx) }
     }
 
-    override func visitAddSub(_ ctx: CoolParser.AddSubContext) -> Void? {
-        return printInternals(ctx: ctx) { visitChildren(ctx) }
-    }
-
-    override func visitMulDiv(_ ctx: CoolParser.MulDivContext) -> Void? {
+    override func visitArith(_ ctx: CoolParser.ArithContext) -> Void? {
         return printInternals(ctx: ctx) { visitChildren(ctx) }
     }
 
