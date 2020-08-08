@@ -219,12 +219,27 @@ class PA2Visitor: CoolBaseVisitor<Void> {
         return printInternals(ctx: ctx) { visitChildren(ctx) }
     }
 
-    override func visitLet(_ ctx: CoolParser.LetContext) -> Void? {
-        return printInternals(ctx: ctx) {
-            printDetails(ctx.letvar()[0].ObjectId()!, ctx.letvar()[0].TypeId()!) // TODO: handle multiple let bindings and init exprs
-            if ctx.letvar()[0].expr() == nil { printNoExpr() }
-            visitChildren(ctx)
+    private func printLetVar(index: Int, _ ctx: CoolParser.LetContext) {
+        if index >= ctx.letvar().count {
+            visit(ctx.expr()!)
+        } else {
+            let letvar = ctx.letvar()[index]
+            printHeader(ctx)
+            indent.inc()
+            printDetails(letvar.ObjectId()!, letvar.TypeId()!)
+            if letvar.expr() == nil {
+                printNoExpr()
+            } else {
+                visit(letvar.expr()!)
+            }
+            printLetVar(index: index + 1, ctx)
+            indent.dec()
+            printType()
         }
+    }
+
+    override func visitLet(_ ctx: CoolParser.LetContext) -> Void? {
+        printLetVar(index: 0, ctx)
     }
 
     override func visitAssign(_ ctx: CoolParser.AssignContext) -> Void? {
