@@ -49,9 +49,14 @@ func pa2(_ args: [String]) throws {
     let listener = PA2Listener()
     try! walker.walk(listener, tree)
 
-    if errorListener.errorCount > 0 || listener.errorCount > 0 {
+    guard errorListener.errorCount == 0 && listener.errorCount == 0 else {
         errPrint("Compilation halted due to lex and syntax errors")
+        return
     }
+
+    let file = String(fileName.split(separator: "/").last!)
+    let visitor = PA2Visitor(fileName: file)
+    visitor.visit(tree)
 }
 
 do {

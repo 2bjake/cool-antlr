@@ -30,8 +30,8 @@ expr : Int                                        # intConst
      | Case expr Of branch+ Esac                  # case
      | '{' (expr ';')+ '}'                        # block
      | expr '@' TypeId '.' ObjectId '(' args? ')' # staticDispatch
-     | expr '.' ObjectId '(' args? ')'            # selfDispatch
-     | ObjectId '(' args? ')'                     # dispatch
+     | expr '.' ObjectId '(' args? ')'            # dispatch
+     | ObjectId '(' args? ')'                     # selfDispatch
      | Let letvar (',' letvar)* In expr           # let
      ;
 

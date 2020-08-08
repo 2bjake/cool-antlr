@@ -16,6 +16,14 @@ extension ParserRuleContext {
 class PA2Listener: CoolBaseListener {
     var errorCount = 0
 
+    override func enterProgram(_ ctx: CoolParser.ProgramContext) {
+        if ctx.getChildCount() == 0 {
+            errorCount += 1
+            let msg = makeErrorMsg(at: "EOF")
+            printError(msg, 0)
+        }
+    }
+
     override func enterCompare(_ ctx: CoolParser.CompareContext) {
         if let expr = ctx.expr().first(where: { $0 is CoolParser.CompareContext}) {
             errorCount += 1

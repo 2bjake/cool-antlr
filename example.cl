@@ -1,4 +1,7 @@
-class Test {
+class test {
   foo:Test;
-  bar():Int { while (not false) loop {1;2;3;4;5;} pool};
+  bar():Int {5};
+};
+
+class recover {
 };
