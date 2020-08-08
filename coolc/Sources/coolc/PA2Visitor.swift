@@ -73,11 +73,9 @@ extension ParserRuleContext {
             case is CoolParser.StringConstContext: return "_string"
             case is CoolParser.IntConstContext: return "_int"
             case is CoolParser.BlockContext: return "_block"
-            case let arith as CoolParser.ArithContext: return arith.op.rawValue
             case is CoolParser.NegateContext: return "_neg"
             case is CoolParser.ObjectContext: return "_object"
             case is CoolParser.IsvoidContext: return "_isvoid"
-            case let comp as CoolParser.CompareContext: return comp.op.rawValue
             case is CoolParser.LetContext: return "_let"
             case is CoolParser.AssignContext: return "_assign"
             case is CoolParser.ConditionalContext: return "_cond"
@@ -88,6 +86,8 @@ extension ParserRuleContext {
             case is CoolParser.CaseContext: return "_typcase"
             case is CoolParser.BranchContext: return "_branch"
             case is CoolParser.FormalContext: return "_formal"
+            case let arith as CoolParser.ArithContext: return arith.op.rawValue
+            case let comp as CoolParser.CompareContext: return comp.op.rawValue
             default: return "unknown"
         }
     }
@@ -118,12 +118,14 @@ class PA2Visitor: CoolBaseVisitor<Void> {
         print("\(indent): _no_type")
     }
 
-    func printInternals(ctx: ParserRuleContext, _ internals: () -> Void) {
+    func printInternals(ctx: ParserRuleContext, shouldPrintType: Bool = true, _ internals: () -> Void) {
         printHeader(ctx)
         indent.inc()
         internals()
         indent.dec()
-        printType()
+        if shouldPrintType {
+            printType()
+        }
     }
 
     func printNoExpr() {
@@ -159,19 +161,16 @@ class PA2Visitor: CoolBaseVisitor<Void> {
         indent.inc(); defer { indent.dec() }
         printDetails(ctx.ObjectId()!)
 
-        for formal in ctx.formals()!.formal() {
-            printFormal(formal)
-        }
+        visit(ctx.formals()!)
         printDetails(ctx.TypeId()!)
-        visitChildren(ctx)
+        visit(ctx.expr()!)
         return ()
     }
 
-    func printFormal(_ ctx: CoolParser.FormalContext) {
-        printHeader(ctx)
-        indent.inc()
-        printDetails(ctx.ObjectId()!, ctx.TypeId()!)
-        indent.dec()
+    override func visitFormal(_ ctx: CoolParser.FormalContext) -> Void? {
+        return printInternals(ctx: ctx, shouldPrintType: false) {
+            printDetails(ctx.ObjectId()!, ctx.TypeId()!)
+        }
     }
 
     override func visitLoop(_ ctx: CoolParser.LoopContext) -> Void? {
@@ -246,28 +245,46 @@ class PA2Visitor: CoolBaseVisitor<Void> {
         }
     }
 
-//    override func visitDispatch(_ ctx: CoolParser.DispatchContext) -> Void? {
-//        return printInternals(ctx: ctx) {
-//            visit(ctx.expr()!)
-//            printDetails(ctx.ObjectId()!)
-//            visit(ctx.args()!)
-//        }
-//    }
-//
-//    override func visitSelfDispatch(_ ctx: CoolParser.SelfDispatchContext) -> Void? {
-//        return printInternals(ctx: ctx) {
-//            printDetails("self", ctx.ObjectId()!) // object _self
-//            visitChildren(ctx)
-//        }
-//    }
-//
-//    override func visitStaticDispatch(_ ctx: CoolParser.StaticDispatchContext) -> Void? {
-//        return printInternals(ctx: ctx) {
-//            visit(ctx.expr()!)
-//            printDetails(ctx.TypeId()!, ctx.ObjectId()!)
-//            visit(ctx.args()!)
-//        }
-//    }
+    override func visitDispatch(_ ctx: CoolParser.DispatchContext) -> Void? {
+        return printInternals(ctx: ctx) {
+            visit(ctx.expr()!)
+            printDetails(ctx.ObjectId()!, "(")
+            if let args = ctx.args() {
+                visit(args)
+            }
+            printDetails(")")
+        }
+    }
+
+
+    override func visitSelfDispatch(_ ctx: CoolParser.SelfDispatchContext) -> Void? {
+        return printInternals(ctx: ctx) {
+            // TODO: faking self object for now, figure out how to actually insert such an object in the tree...
+            print("\(indent)\(ctx.lineString)")
+            print("\(indent)_object")
+            indent.inc()
+            printDetails("self")
+            printType()
+            // end fake self object
+
+            printDetails(ctx.ObjectId()!, "(")
+            if let args = ctx.args() {
+                visit(args)
+            }
+            printDetails(")")
+        }
+    }
+
+    override func visitStaticDispatch(_ ctx: CoolParser.StaticDispatchContext) -> Void? {
+        return printInternals(ctx: ctx) {
+            visit(ctx.expr()!)
+            printDetails(ctx.TypeId()!, ctx.ObjectId()!, "(")
+            if let args = ctx.args() {
+                visit(args)
+            }
+            printDetails(")")
+        }
+    }
 
     override func visitCase(_ ctx: CoolParser.CaseContext) -> Void? {
         return printInternals(ctx: ctx) {
@@ -276,7 +293,7 @@ class PA2Visitor: CoolBaseVisitor<Void> {
     }
 
     override func visitBranch(_ ctx: CoolParser.BranchContext) -> Void? {
-        return printInternals(ctx: ctx) {
+        return printInternals(ctx: ctx, shouldPrintType: false) {
             printDetails(ctx.ObjectId()!, ctx.TypeId()!)
             visitChildren(ctx)
         }

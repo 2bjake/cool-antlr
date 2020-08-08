@@ -1,6 +1,6 @@
 grammar Cool;
 
-program : classDecl* ;
+program : classDecl* ; //TODO: this should be a +, but leaving it as * to customize error message
 
 classDecl : Class TypeId (Inherits TypeId)? '{' feature* '}' ';' ;
 
@@ -18,6 +18,9 @@ expr : Int                                        # intConst
      | '(' expr ')'                               # parens
      | '~' expr                                   # negate
      | Isvoid expr                                # isvoid
+     | expr '@' TypeId '.' ObjectId '(' args? ')' # staticDispatch
+     | expr '.' ObjectId '(' args? ')'            # dispatch
+     | ObjectId '(' args? ')'                     # selfDispatch
      | expr (Star | Divide) expr                  # arith
      | expr (Plus | Minus) expr                   # arith
      | expr (LessEqual | Less | Equal) expr       # compare
@@ -29,9 +32,6 @@ expr : Int                                        # intConst
      | While expr Loop expr Pool                  # loop
      | Case expr Of branch+ Esac                  # case
      | '{' (expr ';')+ '}'                        # block
-     | expr '@' TypeId '.' ObjectId '(' args? ')' # staticDispatch
-     | expr '.' ObjectId '(' args? ')'            # dispatch
-     | ObjectId '(' args? ')'                     # selfDispatch
      | Let letvar (',' letvar)* In expr           # let
      ;
 
