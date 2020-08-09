@@ -40,7 +40,7 @@ func buildProgramTree(parser: CoolParser, fileName: String) throws -> CoolParser
 
 func pa1(parser: CoolParser) throws {
     let tree = try parser.allTokens()
-    let printer = TokenPrinter()
+    let printer = PA1TokenPrinter()
     try ParseTreeWalker().walk(printer, tree)
 }
 

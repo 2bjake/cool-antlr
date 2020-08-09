@@ -16,6 +16,7 @@ func makeErrorMsg(at location: String) -> String{
     return "syntax error at or near \(location)"
 }
 
+// formats error messages in a form that PA2 grading scripts expect
 class PA2ErrorStrategy : DefaultErrorStrategy {
     private var badTokenIndices = Set<Int>()
 

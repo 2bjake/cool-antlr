@@ -9,7 +9,7 @@ import Foundation
 
 // prints the AST in the format that PA2 grading scripts expect
 class PA2ASTPrinter {
-    private var indent = Indention()
+    private var indent = PA2Indention()
 
     private typealias Printable = PA2Named & SourceLocated
 

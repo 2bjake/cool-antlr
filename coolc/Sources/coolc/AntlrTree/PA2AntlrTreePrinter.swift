@@ -8,19 +8,6 @@
 import Antlr4
 import Foundation
 
-struct Indention: CustomStringConvertible {
-    var description = ""
-
-    mutating func inc() {
-        description += "  "
-    }
-
-    mutating func dec() {
-        description = String(description.dropLast(2))
-    }
-
-}
-
 private extension ParserRuleContext {
     var name: String {
         switch self {
@@ -60,7 +47,7 @@ private extension ParserRuleContext {
 
 // prints Antlr tree in form that PA2 expects
 class PA2AntlrTreePrinter: CoolBaseVisitor<Void> {
-    var indent = Indention()
+    var indent = PA2Indention()
     let fileName: String
 
     init(fileName: String) {

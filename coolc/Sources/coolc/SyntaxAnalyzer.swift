@@ -18,13 +18,13 @@ class SyntaxAnalyzer: CoolBaseListener {
     }
 
     private func printError(_ msg: String, _ line: Int) {
+        errorCount += 1
         errPrint("\"\(fileName)\", line \(line): \(msg)")
     }
 
     // program must have at least one class
     override func enterProgram(_ ctx: CoolParser.ProgramContext) {
         if ctx.getChildCount() == 0 {
-            errorCount += 1
             let msg = makeErrorMsg(at: "EOF")
             printError(msg, 0)
         }
@@ -33,7 +33,6 @@ class SyntaxAnalyzer: CoolBaseListener {
     // expressions like 2 < 3 < 4 are not valid
     override func enterCompare(_ ctx: CoolParser.CompareContext) {
         if let expr = ctx.expr().first(where: { $0 is CoolParser.CompareContext}) {
-            errorCount += 1
             let msg = makeErrorMsg(at: expr.text)
             printError(msg, expr.lineNum)
         }

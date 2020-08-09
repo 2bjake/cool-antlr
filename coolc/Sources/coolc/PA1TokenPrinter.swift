@@ -1,5 +1,5 @@
 //
-//  PA1Listener.swift
+//  PA1TokenPrinter.swift
 //
 //
 //  Created by Jake Foster on 8/5/20.
@@ -7,7 +7,8 @@
 import Antlr4
 import Foundation
 
-class TokenPrinter: CoolBaseListener {
+// prints tokens out in form PA1 grading scripts expect
+class PA1TokenPrinter: CoolBaseListener {
 
     private func printToken(_ symbol: String, _ ctx: CoolParser.TokenContext) {
         printToken(symbol, ctx.lineNum, ctx.text)
