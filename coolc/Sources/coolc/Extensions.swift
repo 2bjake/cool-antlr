@@ -14,8 +14,8 @@ extension ParserRuleContext {
 }
 
 extension CoolParser.ClassDeclContext {
-    var className: String { TypeId(0)!.getText() }
-    var parentName: String { TypeId(1)?.getText() ?? Symbols.objectTypeName }
+    var classTypeName: String { TypeId(0)!.getText() }
+    var parentTypeName: String { TypeId(1)?.getText() ?? Symbols.objectTypeName }
 }
 
 extension CoolParser.FormalContext {

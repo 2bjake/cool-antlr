@@ -60,35 +60,35 @@ class SemanticAnalyzer: CoolBaseListener {
     }
 
     override func enterClassDecl(_ ctx: CoolParser.ClassDeclContext) {
-        guard ctx.className != Symbols.selfType else {
+        guard ctx.classTypeName != Symbols.selfType else {
             let msg = "SELF_TYPE cannot be used as a class name"
             reportError(msg, ctx.lineNum)
             return
         }
 
-        guard !isBuiltInClass(ctx.className) else {
-            reportError("Class \(ctx.className) is a built-in class and cannot be redefined", ctx.lineNum)
+        guard !isBuiltInClass(ctx.classTypeName) else {
+            reportError("Class \(ctx.classTypeName) is a built-in class and cannot be redefined", ctx.lineNum)
             return
         }
 
-        guard ctx.parentName != Symbols.selfType && ctx.parentName != ctx.className else {
-            reportError("Class \(ctx.className) cannot inherit from itself", ctx.lineNum)
+        guard ctx.parentTypeName != Symbols.selfType && ctx.parentTypeName != ctx.classTypeName else {
+            reportError("Class \(ctx.classTypeName) cannot inherit from itself", ctx.lineNum)
             return
         }
 
         for basicClass in [Symbols.boolTypeName, Symbols.intTypeName, Symbols.stringTypeName] {
-            guard ctx.parentName != basicClass else {
-                reportError("Class \(ctx.className) cannot inherit from \(basicClass)", ctx.lineNum)
+            guard ctx.parentTypeName != basicClass else {
+                reportError("Class \(ctx.classTypeName) cannot inherit from \(basicClass)", ctx.lineNum)
                 return
             }
         }
 
-        guard classes[ctx.className] == nil else {
-            reportError("Class \(ctx.className) already defined", ctx.lineNum)
+        guard classes[ctx.classTypeName] == nil else {
+            reportError("Class \(ctx.classTypeName) already defined", ctx.lineNum)
             return
         }
 
-        classes[ctx.className] = ctx
+        classes[ctx.classTypeName] = ctx
     }
 
     override func enterAssign(_ ctx: CoolParser.AssignContext) {
@@ -128,7 +128,7 @@ class SemanticAnalyzer: CoolBaseListener {
 
         for className in classes.keys {
             let classCtx = classes[className]!
-            let parentName = classCtx.parentName
+            let parentName = classCtx.parentTypeName
 
             if !isBuiltInClass(parentName) && classes[parentName] == nil {
                 reportError("Class \(className) cannot inherit from \(parentName) because \(parentName) is not defined", classCtx.lineNum)
@@ -137,11 +137,11 @@ class SemanticAnalyzer: CoolBaseListener {
             var hasCycle = false
             var curCtx = classes[parentName]
             while let ctx = curCtx, !hasCycle {
-                if ctx.className == className {
+                if ctx.classTypeName == className {
                     reportError("Class \(className) has an inheritance cycle", classCtx.lineNum)
                     hasCycle = true
                 }
-                curCtx = classes[ctx.parentName]
+                curCtx = classes[ctx.parentTypeName]
             }
 
             /*

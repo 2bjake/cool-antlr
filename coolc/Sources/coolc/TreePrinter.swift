@@ -143,7 +143,7 @@ class TreePrinter: CoolBaseVisitor<Void> {
     override func visitClassDecl(_ ctx: CoolParser.ClassDeclContext) -> Void? {
         printHeader(ctx)
         indent.inc(); defer { indent.dec() }
-        printDetails(ctx.className, ctx.parentName, "\"\(fileName)\"", "(")
+        printDetails(ctx.classTypeName, ctx.parentTypeName, "\"\(fileName)\"", "(")
         visitChildren(ctx)
         printDetails(")")
         return ()

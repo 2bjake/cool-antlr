@@ -108,7 +108,7 @@ func pa3(_ args: [String]) throws {
 }
 
 do {
-    try pa3(CommandLine.arguments)
+    try pa2(CommandLine.arguments)
 } catch (let e) {
     print("Program failed with error: \(e)")
 }
