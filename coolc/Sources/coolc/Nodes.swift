@@ -85,34 +85,34 @@ struct NoExprNode: ExprNode {
     var type: ClassType = .none
 }
 
-struct ConstantExpr<T>: ExprNode {
+struct ConstantExprNode<T>: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let value: T
 }
 
-struct NegateExpr: ExprNode {
+struct NegateExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let expr: ExprNode
 }
 
-struct IsvoidExpr: ExprNode {
+struct IsvoidExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let expr: ExprNode
 }
 
-struct DispatchExpr: ExprNode {
+struct DispatchExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let expr: ExprNode
-    let staticClass: ClassType?
+    let staticClass: ClassType
     let methodName: String
     let args: [ExprNode]
 }
 
-struct ArithExpr: ExprNode {
+struct ArithExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let expr1: ExprNode
@@ -120,7 +120,7 @@ struct ArithExpr: ExprNode {
     let expr2: ExprNode
 }
 
-struct CompareExpr: ExprNode {
+struct CompareExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let expr1: ExprNode
@@ -128,32 +128,32 @@ struct CompareExpr: ExprNode {
     let expr2: ExprNode
 }
 
-struct NotExpr: ExprNode {
+struct NotExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let expr: ExprNode
 }
 
-struct AssignExpr: ExprNode {
+struct AssignExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let varName: String
     let expr: ExprNode
 }
 
-struct ObjectExpr: ExprNode {
+struct ObjectExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let varName: String
 }
 
-struct NewExpr: ExprNode {
+struct NewExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let newType: ClassType
 }
 
-struct ConditionalExpr: ExprNode {
+struct ConditionalExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let predExpr: ExprNode
@@ -161,7 +161,7 @@ struct ConditionalExpr: ExprNode {
     let elseExpr: ExprNode
 }
 
-struct LoopExpr: ExprNode {
+struct LoopExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let predExpr: ExprNode
@@ -175,20 +175,20 @@ struct Branch {
     let body: ExprNode
 }
 
-struct CaseExpr: ExprNode {
+struct CaseExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let expr: ExprNode
     let branches: [Branch]
 }
 
-struct BlockExpr: ExprNode {
+struct BlockExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let exprs: [ExprNode]
 }
 
-struct LetExpr: ExprNode {
+struct LetExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let varName: String
