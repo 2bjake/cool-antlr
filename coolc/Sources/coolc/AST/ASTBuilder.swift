@@ -32,6 +32,10 @@ class ASTBuilder: CoolBaseVisitor<Node> {
         return visit(tree) as! ExprNode
     }
 
+    func start(_ tree: ParseTree) -> ProgramNode {
+        return visit(tree) as! ProgramNode
+    }
+
     override func visitProgram(_ ctx: CoolParser.ProgramContext) -> Node {
         let classes = ctx.classDecl().map(visitClass)
         return ProgramNode(location: makeLocation(ctx), classes: classes)
@@ -40,16 +44,15 @@ class ASTBuilder: CoolBaseVisitor<Node> {
     override func visitClassDecl(_ ctx: CoolParser.ClassDeclContext) -> Node {
         let classType = ClassType(ctx.TypeId(0)!.getText())
         let parentType = ClassType(ctx.TypeId(1)?.getText() ?? Symbols.objectTypeName)
-        var methods = [MethodNode]()
-        var attributes = [AttributeNode]()
+        var features = [Feature]()
         ctx.feature().map(visit).forEach {
             switch $0 {
-                case let attr as AttributeNode: attributes.append(attr)
-                case let method as MethodNode: methods.append(method)
+                case let attr as AttributeNode: features.append(.attribute(attr))
+                case let method as MethodNode: features.append(.method(method))
                 default: fatalError("feature was not method or attribute")
             }
         }
-        return ClassNode(location: makeLocation(ctx), classType: classType, parentType: parentType, methods: methods, attributes: attributes)
+        return ClassNode(location: makeLocation(ctx), classType: classType, parentType: parentType, features: features)
 
     }
 
@@ -66,7 +69,7 @@ class ASTBuilder: CoolBaseVisitor<Node> {
     override func visitAttr(_ ctx: CoolParser.AttrContext) -> Node {
         let type = ClassType(ctx.TypeId()!.getText())
         let name = ctx.ObjectId()!.getText()
-        let initBody = visitExpr(ctx.expr()!)
+        let initBody = ctx.expr() != nil ? visitExpr(ctx.expr()!) : NoExprNode.instance
         return AttributeNode(location: makeLocation(ctx), type: type, name: name, initBody: initBody)
     }
 
@@ -83,22 +86,26 @@ class ASTBuilder: CoolBaseVisitor<Node> {
 
     override func visitBoolConst(_ ctx: CoolParser.BoolConstContext) -> Node {
         let value = ctx.True() != nil
-        return ConstantExprNode<Bool>(location: makeLocation(ctx), value: value)
+        return BoolExprNode(location: makeLocation(ctx), value: value)
     }
 
     override func visitStringConst(_ ctx: CoolParser.StringConstContext) -> Node {
         let value = ctx.String()!.getText()
-        return ConstantExprNode<String>(location: makeLocation(ctx), value: value)
+        return StringExprNode(location: makeLocation(ctx), value: value)
     }
 
     override func visitIntConst(_ ctx: CoolParser.IntConstContext) -> Node {
         let value = Int(ctx.Int()!.getText())!
-        return ConstantExprNode<Int>(location: makeLocation(ctx), value: value)
+        return IntExprNode(location: makeLocation(ctx), value: value)
     }
 
     override func visitBlock(_ ctx: CoolParser.BlockContext) -> Node {
         let exprs = ctx.expr().map(visitExpr)
         return BlockExprNode(location: makeLocation(ctx), exprs: exprs)
+    }
+
+    override func visitParens(_ ctx: CoolParser.ParensContext) -> Node? {
+        return visitExpr(ctx.expr()!)
     }
 
     override func visitArith(_ ctx: CoolParser.ArithContext) -> Node {
@@ -147,7 +154,7 @@ class ASTBuilder: CoolBaseVisitor<Node> {
 
     override func visitAssign(_ ctx: CoolParser.AssignContext) -> Node {
         let varName = ctx.ObjectId()!.getText()
-        let expr = visitExpr(ctx.expr()!)
+        let expr = ctx.expr() != nil ? visitExpr(ctx.expr()!) : NoExprNode.instance
         return AssignExprNode(location: makeLocation(ctx), varName: varName, expr: expr)
     }
 

@@ -1,114 +1,111 @@
 import Antlr4
 import Foundation
 
-func pa1(_ args: [String]) throws {
-    guard let fileName = args.dropFirst().first else {
-        print("must specify cool file")
-        return
-    }
-    guard let data = FileManager.default.contents(atPath: fileName), let contents = String(data: data, encoding: .utf8) else {
-        print("No file found at \(fileName)")
-        return
-    }
-
-    let inputStream = ANTLRInputStream(contents)
-    let lexer = CoolLexer(inputStream)
-    let tokens = CommonTokenStream(lexer)
-    let parser = try! CoolParser(tokens)
-    let tree = try! parser.allTokens()
-
-    let walker = ParseTreeWalker()
-    let printer = TokenPrinter()
-    try! walker.walk(printer, tree)
+enum CompilerError: Error {
+    case fileNotFound
+    case parseError
+    case semanticError
 }
 
-func pa2(_ args: [String]) throws {
-    guard let fileName = args.dropFirst().first else {
-        print("must specify cool file")
-        return
-    }
+func makeParser(for fileName: String) throws -> CoolParser {
     guard let data = FileManager.default.contents(atPath: fileName), let contents = String(data: data, encoding: .utf8) else {
-        print("No file found at \(fileName)")
-        return
+        throw CompilerError.fileNotFound
     }
-
     let inputStream = ANTLRInputStream(contents)
     let lexer = CoolLexer(inputStream)
     let tokens = CommonTokenStream(lexer)
-    let parser = try! CoolParser(tokens)
+    return try CoolParser(tokens)
+}
+
+func buildProgramTree(parser: CoolParser, fileName: String) throws -> CoolParser.ProgramContext {
     let errorStrategy = PA2ErrorStrategy()
     parser.setErrorHandler(errorStrategy)
     parser.removeErrorListeners()
 
-    let errorListener = PA2ErrorListener()
+    let errorListener = PA2ErrorListener(fileName: fileName)
     parser.addErrorListener(errorListener)
 
-    let tree = try! parser.program()
+    let tree = try parser.program()
 
     let walker = ParseTreeWalker()
-    let syntaxProcessor = SyntaxProcessor()
+    let syntaxProcessor = SyntaxAnalyzer(fileName: fileName)
     try! walker.walk(syntaxProcessor, tree)
 
     guard errorListener.errorCount == 0 && syntaxProcessor.errorCount == 0 else {
-        errPrint("Compilation halted due to lex and syntax errors")
-        return
+        throw CompilerError.parseError
     }
+    return tree
+}
 
-    let file = String(fileName.split(separator: "/").last!)
-    let printer = TreePrinter(fileName: file)
+
+func pa1(parser: CoolParser) throws {
+    let tree = try parser.allTokens()
+    let printer = TokenPrinter()
+    try ParseTreeWalker().walk(printer, tree)
+}
+
+func pa2(parser: CoolParser, fileName: String) throws {
+    let tree = try buildProgramTree(parser: parser, fileName: fileName)
+    let printer = PA2AntlrTreePrinter(fileName: fileName)
     printer.visit(tree)
 }
 
-func pa3(_ args: [String]) throws {
-    guard let fileName = args.dropFirst().first else {
-        print("must specify cool file")
-        return
-    }
-    guard let data = FileManager.default.contents(atPath: fileName), let contents = String(data: data, encoding: .utf8) else {
-        print("No file found at \(fileName)")
-        return
-    }
+func pa2AST(parser: CoolParser, fileName: String) throws {
+    let tree = try buildProgramTree(parser: parser, fileName: fileName)
 
-    let inputStream = ANTLRInputStream(contents)
-    let lexer = CoolLexer(inputStream)
-    let tokens = CommonTokenStream(lexer)
-    let parser = try! CoolParser(tokens)
-    let errorStrategy = PA2ErrorStrategy()
-    parser.setErrorHandler(errorStrategy)
-    parser.removeErrorListeners()
+    let astBuilder = ASTBuilder(fileName: fileName)
+    let ast = astBuilder.start(tree)
+    let astPrinter = PA2ASTPrinter()
+    astPrinter.printTree(ast)
+}
 
-    let errorListener = PA2ErrorListener()
-    parser.addErrorListener(errorListener)
+func pa3(parser: CoolParser, fileName: String) throws {
+    let tree = try buildProgramTree(parser: parser, fileName: fileName)
 
-    let tree = try! parser.program()
-
-    let walker = ParseTreeWalker()
-    let syntaxProcessor = SyntaxProcessor()
-    try! walker.walk(syntaxProcessor, tree)
-
-    guard errorListener.errorCount == 0 && syntaxProcessor.errorCount == 0 else {
-        errPrint("Compilation halted due to lex and syntax errors")
-        return
-    }
-
-    let file = String(fileName.split(separator: "/").last!)
-
-    let semanticAnalyzer = SemanticAnalyzer(fileName: file)
-
-    try! walker.walk(semanticAnalyzer, tree)
+    let semanticAnalyzer = SemanticAnalyzer(fileName: fileName)
+    try ParseTreeWalker().walk(semanticAnalyzer, tree)
 
     guard semanticAnalyzer.errorCount == 0 else {
-        errPrint("Compilation halted due to static semantic errors.")
-        return
+        throw CompilerError.semanticError
     }
 
-
-    let printer = TreePrinter(fileName: file)
+    let printer = PA2AntlrTreePrinter(fileName: fileName)
     printer.visit(tree)
 }
 
-do {
-    try pa2(CommandLine.arguments)
-} catch (let e) {
-    print("Program failed with error: \(e)")
+enum Program {
+    case pa1, pa2, pa2AST, pa3
 }
+
+let program: Program = .pa1
+
+func main() {
+    guard let fullPath = CommandLine.arguments.dropFirst().first else {
+        print("must specify cool file")
+        return
+    }
+    do {
+        let parser = try makeParser(for: fullPath)
+        let fileName = String(fullPath.split(separator: "/").last!)
+
+        switch program {
+            case .pa1: try pa1(parser: parser)
+            case .pa2: try pa2(parser: parser, fileName: fileName)
+            case .pa2AST: try pa2AST(parser: parser, fileName: fileName)
+            case .pa3: try pa3(parser: parser, fileName: fileName)
+        }
+    } catch (let e as CompilerError) {
+        switch e {
+            case .fileNotFound:
+                errPrint("No file found at \(fullPath)")
+            case .parseError:
+                errPrint("Compilation halted due to lex and syntax errors")
+            case .semanticError:
+                errPrint("Compilation halted due to static semantic errors.")
+        }
+    } catch(let e) {
+        errPrint("Unexpected error: \(e)")
+    }
+}
+
+main()

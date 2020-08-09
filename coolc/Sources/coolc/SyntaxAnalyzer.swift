@@ -1,5 +1,5 @@
 //
-//  PA2Listener.swift
+//  SyntaxAnalyzer.swift
 //
 //
 //  Created by Jake Foster on 8/7/20.
@@ -9,9 +9,19 @@ import Antlr4
 import Foundation
 
 // processes tree to detect syntax errors not caught in parsing/lexing
-class SyntaxProcessor: CoolBaseListener {
-    var errorCount = 0
+class SyntaxAnalyzer: CoolBaseListener {
+    private(set) var errorCount = 0
+    let fileName: String
 
+    init(fileName: String) {
+        self.fileName = fileName
+    }
+
+    private func printError(_ msg: String, _ line: Int) {
+        errPrint("\"\(fileName)\", line \(line): \(msg)")
+    }
+
+    // program must have at least one class
     override func enterProgram(_ ctx: CoolParser.ProgramContext) {
         if ctx.getChildCount() == 0 {
             errorCount += 1
@@ -20,6 +30,7 @@ class SyntaxProcessor: CoolBaseListener {
         }
     }
 
+    // expressions like 2 < 3 < 4 are not valid
     override func enterCompare(_ ctx: CoolParser.CompareContext) {
         if let expr = ctx.expr().first(where: { $0 is CoolParser.CompareContext}) {
             errorCount += 1

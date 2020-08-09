@@ -1,5 +1,5 @@
 //
-//  PA2Visitor.swift
+//  AntlrTreePrinter.swift
 //
 //
 //  Created by Jake Foster on 8/7/20.
@@ -21,46 +21,7 @@ struct Indention: CustomStringConvertible {
 
 }
 
-enum ArithOp: String {
-    case plus = "_plus"
-    case sub = "_sub"
-    case mul = "_mul"
-    case div = "_divide"
-}
-
-enum CompOp: String {
-    case eq = "_eq"
-    case lt = "_lt"
-    case le = "_le"
-}
-
-extension CoolParser.ArithContext {
-    var op: ArithOp {
-        if Plus() != nil {
-            return .plus
-        } else if Minus() != nil {
-            return .sub
-        } else if Star() != nil {
-            return .mul
-        } else {
-            return .div
-        }
-    }
-}
-
-extension CoolParser.CompareContext {
-    var op: CompOp {
-        if Less() != nil {
-            return .lt
-        } else if LessEqual() != nil {
-            return .le
-        } else {
-            return .eq
-        }
-    }
-}
-
-extension ParserRuleContext {
+private extension ParserRuleContext {
     var name: String {
         switch self {
             case is CoolParser.ProgramContext: return "_program"
@@ -86,8 +47,8 @@ extension ParserRuleContext {
             case is CoolParser.CaseContext: return "_typcase"
             case is CoolParser.BranchContext: return "_branch"
             case is CoolParser.FormalContext: return "_formal"
-            case let arith as CoolParser.ArithContext: return arith.op.rawValue
-            case let comp as CoolParser.CompareContext: return comp.op.rawValue
+            case let arith as CoolParser.ArithContext: return arith.op.pa2Name
+            case let comp as CoolParser.CompareContext: return comp.op.pa2Name
             default: return "unknown"
         }
     }
@@ -97,8 +58,8 @@ extension ParserRuleContext {
     }
 }
 
-// prints tree in form that PA2 expects
-class TreePrinter: CoolBaseVisitor<Void> {
+// prints Antlr tree in form that PA2 expects
+class PA2AntlrTreePrinter: CoolBaseVisitor<Void> {
     var indent = Indention()
     let fileName: String
 

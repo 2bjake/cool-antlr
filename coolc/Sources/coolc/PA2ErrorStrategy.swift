@@ -16,13 +16,8 @@ func makeErrorMsg(at location: String) -> String{
     return "syntax error at or near \(location)"
 }
 
-
-func printError(_ msg: String, _ line: Int) {
-    errPrint("filename, line \(line): \(msg)")
-}
-
 class PA2ErrorStrategy : DefaultErrorStrategy {
-    var badTokenIndices = Set<Int>()
+    private var badTokenIndices = Set<Int>()
 
     private func isNewToken(_ token: Token) -> Bool {
         return badTokenIndices.insert(token.getTokenIndex()).inserted
@@ -55,7 +50,17 @@ class PA2ErrorStrategy : DefaultErrorStrategy {
 }
 
 class PA2ErrorListener: BaseErrorListener {
-    public var errorCount = 0
+    public private(set) var errorCount = 0
+
+    private let fileName: String
+
+    init(fileName: String) {
+        self.fileName = fileName
+    }
+
+    private func printError(_ msg: String, _ line: Int) {
+        errPrint("\"\(fileName)\", line \(line): \(msg)")
+    }
 
     override public func syntaxError<T>(_ recognizer: Recognizer<T>, _ offendingSymbol: AnyObject?, _ line: Int, _ charPositionInLine: Int, _ msg: String, _ e: AnyObject?) {
         errorCount += 1

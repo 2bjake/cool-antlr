@@ -30,6 +30,21 @@ enum ClassType {
     }
 }
 
+extension ClassType: CustomStringConvertible {
+    var description: String {
+        switch self {
+            case .none: return Symbols.noClass
+            case .selfType: return Symbols.selfType
+            case .object: return Symbols.objectTypeName
+            case .io: return Symbols.ioTypeName
+            case .bool: return Symbols.boolTypeName
+            case .int: return Symbols.intTypeName
+            case .string: return Symbols.stringTypeName
+            case .defined(let name): return name
+        }
+    }
+}
+
 struct SourceLocation {
     let fileName: String
     let lineNumber: Int
@@ -39,22 +54,28 @@ protocol SourceLocated {
     var location: SourceLocation { get }
 }
 
-protocol Node: SourceLocated {}
+protocol Node: SourceLocated, PA2Named {}
 
 struct ProgramNode: Node {
     let location: SourceLocation
     let classes: [ClassNode]
 }
 
+enum Feature {
+    case method(MethodNode)
+    case attribute(AttributeNode)
+}
+
 struct ClassNode: Node {
     let location: SourceLocation
     let classType: ClassType
     let parentType: ClassType
-    let methods: [MethodNode]
-    let attributes: [AttributeNode]
+    let features: [Feature]
+//    let methods: [MethodNode]
+//    let attributes: [AttributeNode]
 }
 
-struct Formal {
+struct Formal: SourceLocated {
     let location: SourceLocation
     let type: ClassType
     let name: String
@@ -85,10 +106,22 @@ struct NoExprNode: ExprNode {
     var type: ClassType = .none
 }
 
-struct ConstantExprNode<T>: ExprNode {
+struct BoolExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
-    let value: T
+    let value: Bool
+}
+
+struct StringExprNode: ExprNode {
+    let location: SourceLocation
+    var type: ClassType = .none
+    let value: String
+}
+
+struct IntExprNode: ExprNode {
+    let location: SourceLocation
+    var type: ClassType = .none
+    let value: Int
 }
 
 struct NegateExprNode: ExprNode {
@@ -110,6 +143,14 @@ struct DispatchExprNode: ExprNode {
     let staticClass: ClassType
     let methodName: String
     let args: [ExprNode]
+
+    var isStaticDispatch: Bool {
+        if case .none = staticClass {
+            return false
+        } else {
+            return true
+        }
+    }
 }
 
 struct ArithExprNode: ExprNode {
@@ -168,7 +209,7 @@ struct LoopExprNode: ExprNode {
     let body: ExprNode
 }
 
-struct Branch {
+struct Branch: SourceLocated {
     let location: SourceLocation
     let bindName: String
     let bindType: ClassType
