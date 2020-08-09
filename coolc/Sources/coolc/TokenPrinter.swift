@@ -7,7 +7,7 @@
 import Antlr4
 import Foundation
 
-class PA1Listener: CoolBaseListener {
+class TokenPrinter: CoolBaseListener {
 
     private func printToken(_ symbol: String, _ ctx: CoolParser.TokenContext) {
         printToken(symbol, ctx.lineNum, ctx.text)

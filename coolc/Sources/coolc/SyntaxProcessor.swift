@@ -13,7 +13,8 @@ extension ParserRuleContext {
     var text: String { getStart()!.getText()! }
 }
 
-class PA2Listener: CoolBaseListener {
+// processes tree to detect syntax errors not caught in parsing/lexing
+class SyntaxProcessor: CoolBaseListener {
     var errorCount = 0
 
     override func enterProgram(_ ctx: CoolParser.ProgramContext) {

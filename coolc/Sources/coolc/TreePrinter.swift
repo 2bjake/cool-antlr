@@ -97,7 +97,8 @@ extension ParserRuleContext {
     }
 }
 
-class PA2Visitor: CoolBaseVisitor<Void> {
+// prints tree in form that PA2 expects
+class TreePrinter: CoolBaseVisitor<Void> {
     var indent = Indention()
     let fileName: String
 

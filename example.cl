@@ -1,7 +1,7 @@
-class test {
-  foo:Test;
-  bar():Int {5};
-};
+class A inherits C {};
 
-class recover {
-};
+class B inherits A {};
+
+class C inherits B {};
+
+class Main {};
