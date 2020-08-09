@@ -8,11 +8,6 @@
 import Antlr4
 import Foundation
 
-extension ParserRuleContext {
-    var lineNum: Int { getStart()!.getLine() }
-    var text: String { getStart()!.getText()! }
-}
-
 // processes tree to detect syntax errors not caught in parsing/lexing
 class SyntaxProcessor: CoolBaseListener {
     var errorCount = 0
