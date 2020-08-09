@@ -54,7 +54,7 @@ func pa2AST(parser: CoolParser, fileName: String) throws {
     let tree = try buildProgramTree(parser: parser, fileName: fileName)
 
     let astBuilder = ASTBuilder(fileName: fileName)
-    let ast = astBuilder.start(tree)
+    let ast = try astBuilder.start(tree)
     let astPrinter = PA2ASTPrinter()
     astPrinter.printTree(ast)
 }
@@ -73,11 +73,19 @@ func pa3(parser: CoolParser, fileName: String) throws {
     printer.visit(tree)
 }
 
-enum Program {
-    case pa1, pa2, pa2AST, pa3
+func pa3AST(parser: CoolParser, fileName: String) throws {
+    let tree = try buildProgramTree(parser: parser, fileName: fileName)
+    let astBuilder = ASTBuilder(fileName: fileName)
+    let ast = try astBuilder.start(tree)
+    let astPrinter = PA2ASTPrinter()
+    astPrinter.printTree(ast)
 }
 
-let program: Program = .pa1
+enum Program {
+    case pa1, pa2, pa2AST, pa3, pa3AST
+}
+
+let program: Program = .pa3AST
 
 func main() {
     guard let fullPath = CommandLine.arguments.dropFirst().first else {
@@ -93,6 +101,7 @@ func main() {
             case .pa2: try pa2(parser: parser, fileName: fileName)
             case .pa2AST: try pa2AST(parser: parser, fileName: fileName)
             case .pa3: try pa3(parser: parser, fileName: fileName)
+            case .pa3AST: try pa3AST(parser: parser, fileName: fileName)
         }
     } catch (let e as CompilerError) {
         switch e {

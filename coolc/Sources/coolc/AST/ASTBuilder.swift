@@ -11,6 +11,7 @@ import Foundation
 class ASTBuilder: CoolBaseVisitor<Node> {
 
     let fileName: String
+    var classAnalyzer = ClassAnalyzer()
 
     init(fileName: String) {
         self.fileName = fileName
@@ -18,6 +19,10 @@ class ASTBuilder: CoolBaseVisitor<Node> {
 
     private func makeLocation(_ ctx: ParserRuleContext) -> SourceLocation {
         .init(fileName: fileName, lineNumber: ctx.lineNum)
+    }
+
+    private func printError(_ error: SemanticError) {
+        errPrint("\(fileName):\(error.lineNumber): \(error.message)")
     }
 
     override func visit(_ tree: ParseTree) -> Node {
@@ -32,12 +37,33 @@ class ASTBuilder: CoolBaseVisitor<Node> {
         return visit(tree) as! ExprNode
     }
 
-    func start(_ tree: ParseTree) -> ProgramNode {
-        return visit(tree) as! ProgramNode
+    func start(_ ctx: CoolParser.ProgramContext) throws -> ProgramNode {
+        // First pass check on classes, visitProgram will only visit classes that check out
+        var hasError = false
+        for classCtx in ctx.classDecl() {
+            do {
+                try classAnalyzer.checkClass(classCtx)
+            } catch let error as SemanticError {
+                printError(error)
+                hasError = true
+            } catch {
+                throw CompilerError.semanticError
+            }
+        }
+        if hasError { throw CompilerError.semanticError }
+
+        do {
+            try classAnalyzer.checkClasses()
+        } catch let error as SemanticError {
+            printError(error)
+            throw CompilerError.semanticError
+        }
+
+        return visit(ctx) as! ProgramNode
     }
 
     override func visitProgram(_ ctx: CoolParser.ProgramContext) -> Node {
-        let classes = ctx.classDecl().map(visitClass)
+        let classes = classAnalyzer.checkedClasses.values.map(visitClass)
         return ProgramNode(location: makeLocation(ctx), classes: classes)
     }
 

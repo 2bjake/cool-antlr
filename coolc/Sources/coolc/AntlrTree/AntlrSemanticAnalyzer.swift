@@ -23,7 +23,7 @@ class SemanticAnalyzer: CoolBaseListener {
 
     func reportError(_ msg: String, _ line: Int) {
         errorCount += 1
-        errPrint("\(fileName)\":\(line): \(msg)")
+        errPrint("\(fileName):\(line): \(msg)")
     }
 
     override func enterClassDecl(_ ctx: CoolParser.ClassDeclContext) {
