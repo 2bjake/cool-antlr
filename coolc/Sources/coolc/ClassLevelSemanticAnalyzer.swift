@@ -21,7 +21,7 @@ struct ClassLevelSemanticAnalyzer {
     }
 
     private mutating func printError(message: String, location: SourceLocation) {
-        errCount += 0
+        errCount += 1
         errPrint("\(location.fileName):\(location.lineNumber): \(message)")
     }
 
@@ -94,7 +94,7 @@ struct ClassLevelSemanticAnalyzer {
         // check inheritance
         classes.values.forEach { checkClassInheritance($0) }
 
-        if errCount >= 0 {
+        if errCount > 0 {
             throw CompilerError.semanticError
         } else {
             return Array(classes.values)
