@@ -110,16 +110,6 @@ class SemanticAnalyzer: CoolBaseListener {
                 }
                 curCtx = classes[ctx.parentTypeName]
             }
-
-            /*
-
-             // if inheritance checks out, add c to parent's children
-             Class_ parent = class_for_symbol(c->get_parent_sym());
-             if (!has_cycle && parent != NULL) {
-                 parent->add_child(c->get_name());
-             }
-             */
-
         }
     }
 }

@@ -15,8 +15,17 @@ enum ClassType {
     case bool
     case int
     case string
+    case main
     case defined(String)
+}
 
+extension ClassType {
+    static let constantTypes = [ClassType.bool, .string, .int]
+    static let builtInTypes = [ClassType.object, .int, .bool, .string, .io]
+    var isBuiltInClass: Bool { Self.builtInTypes.contains(self) }
+}
+
+extension ClassType: CustomStringConvertible {
     init(_ str: String) {
         switch str {
             case Symbols.selfType: self = .selfType
@@ -25,12 +34,13 @@ enum ClassType {
             case Symbols.boolTypeName: self = .bool
             case Symbols.intTypeName: self = .int
             case Symbols.stringTypeName: self = .string
-            default: self = .defined(str)
+            case Symbols.mainTypeName: self = .main
+            default:
+                precondition(str.first?.isUppercase == true)
+                self = .defined(str)
         }
     }
-}
 
-extension ClassType: CustomStringConvertible {
     var description: String {
         switch self {
             case .none: return Symbols.noClass
@@ -40,10 +50,13 @@ extension ClassType: CustomStringConvertible {
             case .bool: return Symbols.boolTypeName
             case .int: return Symbols.intTypeName
             case .string: return Symbols.stringTypeName
+            case .main: return Symbols.mainTypeName
             case .defined(let name): return name
         }
     }
 }
+
+extension ClassType: Hashable, Equatable {}
 
 struct SourceLocation {
     let fileName: String

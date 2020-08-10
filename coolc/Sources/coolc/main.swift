@@ -51,10 +51,10 @@ func pa2(parser: CoolParser, fileName: String) throws {
 }
 
 func pa2AST(parser: CoolParser, fileName: String) throws {
-    let tree = try buildProgramTree(parser: parser, fileName: fileName)
+    let program = try buildProgramTree(parser: parser, fileName: fileName)
 
     let astBuilder = ASTBuilder(fileName: fileName)
-    let ast = try astBuilder.start(tree)
+    let ast = astBuilder.build(program)
     let astPrinter = PA2ASTPrinter()
     astPrinter.printTree(ast)
 }
@@ -74,9 +74,11 @@ func pa3(parser: CoolParser, fileName: String) throws {
 }
 
 func pa3AST(parser: CoolParser, fileName: String) throws {
-    let tree = try buildProgramTree(parser: parser, fileName: fileName)
+    let program = try buildProgramTree(parser: parser, fileName: fileName)
     let astBuilder = ASTBuilder(fileName: fileName)
-    let ast = try astBuilder.start(tree)
+    let ast = astBuilder.build(program)
+    var classAnalyzer = ClassLevelSemanticAnalyzer(ast: ast)
+    let classes = try classAnalyzer.analyze()
     let astPrinter = PA2ASTPrinter()
     astPrinter.printTree(ast)
 }
