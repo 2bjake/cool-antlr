@@ -13,51 +13,48 @@ class PA2ASTPrinter {
 
     private typealias Printable = PA2Named & SourceLocated
 
-    private func printDetails(_ strings: CustomStringConvertible...) {
+    private func printElements(_ strings: CustomStringConvertible...) {
         strings.forEach { print("\(indent)\($0)") }
     }
 
-    private func printHeader(_ node: Printable) {
-        printDetails("#\(node.location.lineNumber)", node.pa2Name)
+    private func lineString(_ located: SourceLocated) -> String {
+        return "#\(located.location.lineNumber)"
     }
 
-    private func printType(_ node: ExprNode) {
-        print("\(indent): _no_type") // TODO: base this on the actual type
+    private func printHeader(_ printable: Printable) {
+        printElements(lineString(printable), printable.pa2Name)
     }
 
-    private func printInternals(_ printable: Printable, _ internals: () -> Void) {
+    private func printTypeName(_ node: ExprNode) {
+        printElements(": _no_type") // TODO: base this on the actual type
+    }
+
+    private func printObject(_ printable: Printable, _ internalsPrinter: () -> Void) {
         printHeader(printable)
         indent.inc()
-        internals()
+        internalsPrinter()
         indent.dec()
     }
 
-    private func printInternals(_ printable: Printable, details: CustomStringConvertible...) {
-        printInternals(printable) {
-            for detail in details {
-                printDetails(detail)
+    private func printObject(_ printable: Printable, elements: CustomStringConvertible...) {
+        printObject(printable) {
+            for element in elements {
+                printElements(element)
             }
         }
     }
 
-    private func printInternals(_ node: ExprNode, _ internals: () -> Void) {
-        printHeader(node)
-        indent.inc()
-        internals()
-        indent.dec()
-        printType(node)
+    private func printNode(_ node: ExprNode, _ internalsPrinter: () -> Void) {
+        printObject(node, internalsPrinter)
+        printTypeName(node)
     }
 
-    private func printInternals(_ node: ExprNode, details: CustomStringConvertible...) {
-        printInternals(node) {
-            for detail in details {
-                printDetails(detail)
+    private func printNode(_ node: ExprNode, elements: CustomStringConvertible...) {
+        printNode(node) {
+            for element in elements {
+                printElements(element)
             }
         }
-    }
-
-    private func lineString(_ node: SourceLocated) -> String {
-        return "#\(node.location.lineNumber)"
     }
 
     private func visit(_ node: ProgramNode) {
@@ -70,7 +67,7 @@ class PA2ASTPrinter {
     private func visit(_ node: ClassNode) {
         printHeader(node)
         indent.inc(); defer { indent.dec() }
-        printDetails(node.classType, node.parentType, "\"\(node.location.fileName)\"", "(")
+        printElements(node.classType, node.parentType, "\"\(node.location.fileName)\"", "(")
 
         // visit children
         node.features.forEach {
@@ -79,101 +76,101 @@ class PA2ASTPrinter {
                 case .method(let method): visit(method)
             }
         }
-        printDetails(")")
+        printElements(")")
     }
 
     private func visit(_ node: AttributeNode) {
         printHeader(node)
         indent.inc(); defer { indent.dec() }
-        printDetails(node.name, node.type, lineString(node))
+        printElements(node.name, node.type, lineString(node))
         // visit children
         visit(node.initBody)
     }
 
     private func printFormal(_ formal: Formal) {
-        printInternals(formal, details: formal.name, formal.type)
+        printObject(formal, elements: formal.name, formal.type)
     }
 
     private func visit(_ node: MethodNode) {
         printHeader(node)
         indent.inc(); defer { indent.dec() }
-        printDetails(node.name)
+        printElements(node.name)
         node.formals.forEach(printFormal)
-        printDetails(node.type)
+        printElements(node.type)
         // visit children
         visit(node.body)
     }
 
     private func visit(_ node: NoExprNode) {
-        printDetails(node.pa2Name)
-        printType(node)
+        printElements(node.pa2Name)
+        printTypeName(node)
     }
 
     private func visit(_ node: BoolExprNode) {
-        printInternals(node, details: node.value ? 1 : 0)
+        printNode(node, elements: node.value ? 1 : 0)
     }
 
     private func visit(_ node: StringExprNode) {
-        printInternals(node, details: node.value)
+        printNode(node, elements: node.value)
     }
 
     private func visit(_ node: IntExprNode) {
-        printInternals(node, details: node.value)
+        printNode(node, elements: node.value)
     }
 
     private func visit(_ node: NegateExprNode) {
-        printInternals(node) { visit(node.expr) }
+        printNode(node) { visit(node.expr) }
     }
 
     private func visit(_ node: IsvoidExprNode) {
-        printInternals(node) { visit(node.expr) }
+        printNode(node) { visit(node.expr) }
     }
 
     private func visit(_ node: DispatchExprNode) {
-        printInternals(node) {
+        printNode(node) {
             visit(node.expr)
-            if node.isStaticDispatch { printDetails(node.staticClass) }
-            printDetails(node.methodName, "(")
+            if node.isStaticDispatch { printElements(node.staticClass) }
+            printElements(node.methodName, "(")
             node.args.forEach(visit)
-            printDetails(")")
+            printElements(")")
         }
     }
 
     private func visit(_ node: ArithExprNode) {
-        return printInternals(node) {
+        return printNode(node) {
             visit(node.expr1)
             visit(node.expr2)
         }
     }
 
     private func visit(_ node: CompareExprNode) {
-        return printInternals(node) {
+        return printNode(node) {
             visit(node.expr1)
             visit(node.expr2)
         }
     }
 
     private func visit(_ node: NotExprNode) {
-        printInternals(node) { visit(node.expr) }
+        printNode(node) { visit(node.expr) }
     }
 
     private func visit(_ node: AssignExprNode) {
-        printInternals(node) {
-            printDetails(node.varName)
+        printNode(node) {
+            printElements(node.varName)
             visit(node.expr)
         }
     }
 
     private func visit(_ node: ObjectExprNode) {
-        printInternals(node, details: node.varName)
+        printNode(node, elements: node.varName)
     }
 
     private func visit(_ node: NewExprNode) {
-        printInternals(node, details: node.newType)
+        printNode(node, elements: node.newType)
     }
 
     private func visit(_ node: ConditionalExprNode) {
-        printInternals(node) {
+        printNode(node) {
             visit(node.predExpr)
             visit(node.thenExpr)
             visit(node.elseExpr)
@@ -181,35 +178,35 @@ class PA2ASTPrinter {
     }
 
     private func visit(_ node: LoopExprNode) {
-        printInternals(node) {
+        printNode(node) {
             visit(node.predExpr)
             visit(node.body)
         }
     }
 
     private func printBranch(_ branch: Branch) {
-        printInternals(branch) {
-            printDetails(branch.bindName, branch.bindType)
+        printObject(branch) {
+            printElements(branch.bindName, branch.bindType)
             visit(branch.body)
         }
     }
 
     private func visit(_ node: CaseExprNode) {
-        printInternals(node) {
+        printNode(node) {
             visit(node.expr)
             node.branches.forEach(printBranch)
         }
     }
 
     private func visit(_ node: BlockExprNode) {
-        printInternals(node) {
+        printNode(node) {
             node.exprs.forEach(visit)
         }
     }
 
     private func visit(_ node: LetExprNode) {
-        printInternals(node) {
-            printDetails(node.varName, node.varType)
+        printNode(node) {
+            printElements(node.varName, node.varType)
             visit(node.initExpr)
             visit(node.bodyExpr)
         }
