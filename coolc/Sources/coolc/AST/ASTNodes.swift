@@ -170,6 +170,8 @@ struct DispatchExprNode: ExprNode {
     }
 }
 
+enum ArithOp { case plus, sub, mul, div }
+
 struct ArithExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
@@ -177,6 +179,8 @@ struct ArithExprNode: ExprNode {
     let op: ArithOp
     let expr2: ExprNode
 }
+
+enum CompOp { case eq, lt, le }
 
 struct CompareExprNode: ExprNode {
     let location: SourceLocation

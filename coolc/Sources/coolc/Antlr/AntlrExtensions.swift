@@ -13,23 +13,6 @@ extension ParserRuleContext {
     var text: String { getStart()!.getText()! }
 }
 
-extension CoolParser.ClassDeclContext {
-    var classTypeName: String { TypeId(0)!.getText() }
-    var parentTypeName: String { TypeId(1)?.getText() ?? Symbols.objectTypeName }
-}
-
-extension CoolParser.FormalContext {
-    var typeName: String { TypeId()!.getText() }
-}
-
-enum ArithOp {
-    case plus, sub, mul, div
-}
-
-enum CompOp {
-    case eq, lt, le
-}
-
 extension CoolParser.ArithContext {
     var op: ArithOp {
         if Plus() != nil {

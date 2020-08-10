@@ -44,12 +44,6 @@ func pa1(parser: CoolParser) throws {
 }
 
 func pa2(parser: CoolParser, fileName: String) throws {
-    let tree = try buildProgramTree(parser: parser, fileName: fileName)
-    let printer = PA2AntlrTreePrinter(fileName: fileName)
-    printer.visit(tree)
-}
-
-func pa2AST(parser: CoolParser, fileName: String) throws {
     let program = try buildProgramTree(parser: parser, fileName: fileName)
 
     let astBuilder = ASTBuilder(fileName: fileName)
@@ -59,34 +53,20 @@ func pa2AST(parser: CoolParser, fileName: String) throws {
 }
 
 func pa3(parser: CoolParser, fileName: String) throws {
-    let tree = try buildProgramTree(parser: parser, fileName: fileName)
-
-    let semanticAnalyzer = SemanticAnalyzer(fileName: fileName)
-    try ParseTreeWalker().walk(semanticAnalyzer, tree)
-
-    guard semanticAnalyzer.errorCount == 0 else {
-        throw CompilerError.semanticError
-    }
-
-    let printer = PA2AntlrTreePrinter(fileName: fileName)
-    printer.visit(tree)
-}
-
-func pa3AST(parser: CoolParser, fileName: String) throws {
     let program = try buildProgramTree(parser: parser, fileName: fileName)
     let astBuilder = ASTBuilder(fileName: fileName)
     let ast = astBuilder.build(program)
     var classAnalyzer = ClassLevelSemanticAnalyzer(ast: ast)
-    let classes = try classAnalyzer.analyze()
+    let definedClasses = try classAnalyzer.analyze()
     let astPrinter = PA2ASTPrinter()
     astPrinter.printTree(ast)
 }
 
 enum Program {
-    case pa1, pa2, pa2AST, pa3, pa3AST
+    case pa1, pa2, pa3
 }
 
-let program: Program = .pa3AST
+let program: Program = .pa3
 
 func main() {
     guard let fullPath = CommandLine.arguments.dropFirst().first else {
@@ -100,9 +80,7 @@ func main() {
         switch program {
             case .pa1: try pa1(parser: parser)
             case .pa2: try pa2(parser: parser, fileName: fileName)
-            case .pa2AST: try pa2AST(parser: parser, fileName: fileName)
             case .pa3: try pa3(parser: parser, fileName: fileName)
-            case .pa3AST: try pa3AST(parser: parser, fileName: fileName)
         }
     } catch let error as CompilerError {
         switch error {
