@@ -1,5 +1,5 @@
 //
-//  SemanticAnalyzer.swift
+//  AntlrSemanticAnalyzer.swift
 //
 //
 //  Created by Jake Foster on 8/8/20.
@@ -9,7 +9,7 @@ import Antlr4
 import Foundation
 
 // processes tree to detect semantic errors
-class SemanticAnalyzer: CoolBaseListener {
+class AntlrSemanticAnalyzer: CoolBaseListener {
     private let builtInClassNames = [Symbols.objectTypeName, Symbols.intTypeName, Symbols.boolTypeName, Symbols.stringTypeName, Symbols.ioTypeName]
     private let fileName: String
     var errorCount = 0

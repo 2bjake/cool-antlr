@@ -71,7 +71,11 @@ protocol Node: SourceLocated, PA2Named {}
 
 struct ProgramNode: Node {
     let location: SourceLocation
-    let classes: [ClassNode]
+    private(set) var classes: [ClassNode]
+
+    mutating func addClasses(_ classNodes: ClassNode...) {
+        classes.append(contentsOf: classNodes)
+    }
 }
 
 enum Feature {
