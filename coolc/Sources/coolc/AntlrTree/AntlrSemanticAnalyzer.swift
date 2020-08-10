@@ -66,8 +66,8 @@ class SemanticAnalyzer: CoolBaseListener {
 
     override func enterFormals(_ ctx: CoolParser.FormalsContext) {
         var formalSet = Set<String>()
-        for f in ctx.formal() {
-            let name = f.ObjectId()!.getText()
+        for formal in ctx.formal() {
+            let name = formal.ObjectId()!.getText()
             if !formalSet.insert(name).inserted {
                 reportError("Duplicate name \(name) in formals list", ctx.lineNum)
             }
@@ -113,4 +113,3 @@ class SemanticAnalyzer: CoolBaseListener {
         }
     }
 }
-

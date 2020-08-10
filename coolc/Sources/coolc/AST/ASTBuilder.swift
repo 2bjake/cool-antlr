@@ -8,6 +8,7 @@
 import Antlr4
 import Foundation
 
+// swiftlint:disable force_cast
 class ASTBuilder: CoolBaseVisitor<Node> {
 
     let fileName: String
@@ -211,4 +212,3 @@ class ASTBuilder: CoolBaseVisitor<Node> {
         return CaseExprNode(location: makeLocation(ctx), expr: expr, branches: branches)
     }
 }
-

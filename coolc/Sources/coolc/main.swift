@@ -29,14 +29,13 @@ func buildProgramTree(parser: CoolParser, fileName: String) throws -> CoolParser
 
     let walker = ParseTreeWalker()
     let syntaxProcessor = SyntaxAnalyzer(fileName: fileName)
-    try! walker.walk(syntaxProcessor, tree)
+    try walker.walk(syntaxProcessor, tree)
 
     guard errorListener.errorCount == 0 && syntaxProcessor.errorCount == 0 else {
         throw CompilerError.parseError
     }
     return tree
 }
-
 
 func pa1(parser: CoolParser) throws {
     let tree = try parser.allTokens()
@@ -105,8 +104,8 @@ func main() {
             case .pa3: try pa3(parser: parser, fileName: fileName)
             case .pa3AST: try pa3AST(parser: parser, fileName: fileName)
         }
-    } catch (let e as CompilerError) {
-        switch e {
+    } catch let error as CompilerError {
+        switch error {
             case .fileNotFound:
                 errPrint("No file found at \(fullPath)")
             case .parseError:
@@ -114,8 +113,8 @@ func main() {
             case .semanticError:
                 errPrint("Compilation halted due to static semantic errors.")
         }
-    } catch(let e) {
-        errPrint("Unexpected error: \(e)")
+    } catch {
+        errPrint("Unexpected error: \(error)")
     }
 }
 

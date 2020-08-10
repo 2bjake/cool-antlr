@@ -1,6 +1,7 @@
 import XCTest
 import class Foundation.Bundle
 
+// swiftlint:disable type_name
 final class coolcTests: XCTestCase {
     func testExample() throws {
         // This is an example of a functional test case.
@@ -42,6 +43,6 @@ final class coolcTests: XCTestCase {
     }
 
     static var allTests = [
-        ("testExample", testExample),
+        ("testExample", testExample)
     ]
 }

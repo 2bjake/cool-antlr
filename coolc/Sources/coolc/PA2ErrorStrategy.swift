@@ -12,12 +12,12 @@ func errPrint(_ msg: String) {
     fputs(msg + "\n", stderr)
 }
 
-func makeErrorMsg(at location: String) -> String{
+func makeErrorMsg(at location: String) -> String {
     return "syntax error at or near \(location)"
 }
 
 // formats error messages in a form that PA2 grading scripts expect
-class PA2ErrorStrategy : DefaultErrorStrategy {
+class PA2ErrorStrategy: DefaultErrorStrategy {
     private var badTokenIndices = Set<Int>()
 
     private func isNewToken(_ token: Token) -> Bool {
@@ -63,11 +63,10 @@ class PA2ErrorListener: BaseErrorListener {
         errPrint("\"\(fileName)\", line \(line): \(msg)")
     }
 
-    override public func syntaxError<T>(_ recognizer: Recognizer<T>, _ offendingSymbol: AnyObject?, _ line: Int, _ charPositionInLine: Int, _ msg: String, _ e: AnyObject?) {
+    override public func syntaxError<T>(_: Recognizer<T>, _: AnyObject?, _ line: Int, _: Int, _ msg: String, _: AnyObject?) {
         errorCount += 1
         if Parser.ConsoleError {
             printError(msg, line)
         }
     }
 }
-

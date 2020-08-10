@@ -56,7 +56,7 @@ class PA2ASTPrinter {
         }
     }
 
-    private func lineString(_ node: SourceLocated) ->String {
+    private func lineString(_ node: SourceLocated) -> String {
         return "#\(node.location.lineNumber)"
     }
 
@@ -81,7 +81,6 @@ class PA2ASTPrinter {
         }
         printDetails(")")
     }
-
 
     private func visit(_ node: AttributeNode) {
         printHeader(node)
@@ -216,6 +215,7 @@ class PA2ASTPrinter {
         }
     }
 
+    // swiftlint:disable cyclomatic_complexity
     private func visit(_ node: ExprNode) {
         switch node {
             case let node as LoopExprNode: visit(node)
@@ -244,4 +244,3 @@ class PA2ASTPrinter {
         visit(node)
     }
 }
-

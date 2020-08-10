@@ -1,0 +1,10 @@
+disabled_rules:
+  - switch_case_alignment
+  - todo
+  - line_length
+  - identifier_name
+
+excluded:
+  - Sources/coolc/gen
+  - .build
+  - Package.swift

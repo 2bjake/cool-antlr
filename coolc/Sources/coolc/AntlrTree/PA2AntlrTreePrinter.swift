@@ -220,7 +220,6 @@ class PA2AntlrTreePrinter: CoolBaseVisitor<Void> {
         }
     }
 
-
     override func visitSelfDispatch(_ ctx: CoolParser.SelfDispatchContext) -> Void? {
         return printInternals(ctx: ctx) {
             // TODO: faking self object for now, figure out how to actually insert such an object in the tree...
