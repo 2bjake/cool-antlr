@@ -8,36 +8,38 @@
 import Foundation
 
 // prints the AST in the format that PA2 grading scripts expect
-class PA2ASTPrinter {
+class PA2ASTPrinter: ASTVisitor {
     private let printer = PA2Printer()
 
     func printTree(_ node: ProgramNode) {
         visit(node)
     }
 
-    private func visit(_ node: ProgramNode) {
-        printer.printObject(node) {
-            node.classes.forEach(visit)
+    private func printNodeWithChildren(_ node: ExprNode, elements: CustomStringConvertible...) {
+        printer.printNode(node) {
+            for element in elements {
+                printer.printElements(element)
+            }
+            visitChildren(node)
         }
     }
 
-    private func visit(_ node: ClassNode) {
+    func visit(_ node: ProgramNode) {
+        printer.printObject(node) { visitChildren(node) }
+    }
+
+    func visit(_ node: ClassNode) {
         printer.printObject(node) {
             printer.printElements(node.classType, node.parentType, "\"\(node.location.fileName)\"", "(")
-            node.features.forEach {
-                switch $0 {
-                    case .attribute(let attr): visit(attr)
-                    case .method(let method): visit(method)
-                }
-            }
+            visitChildren(node)
             printer.printElements(")")
         }
     }
 
-    private func visit(_ node: AttributeNode) {
+    func visit(_ node: AttributeNode) {
         printer.printObject(node) {
             printer.printElements(node.name, node.type, PA2Printer.lineString(node))
-            visit(node.initBody)
+            visitChildren(node)
         }
     }
 
@@ -45,41 +47,41 @@ class PA2ASTPrinter {
         printer.printObject(formal, elements: formal.name, formal.type)
     }
 
-    private func visit(_ node: MethodNode) {
+    func visit(_ node: MethodNode) {
         printer.printObject(node) {
             printer.printElements(node.name)
             node.formals.forEach(printFormal)
             printer.printElements(node.type)
-            visit(node.body)
+            visitChildren(node)
         }
     }
 
-    private func visit(_ node: NoExprNode) {
+    func visit(_ node: NoExprNode) {
         printer.printElements(node.pa2Name)
         printer.printTypeName(node)
     }
 
-    private func visit(_ node: BoolExprNode) {
+    func visit(_ node: BoolExprNode) {
         printer.printNode(node, elements: node.value ? 1 : 0)
     }
 
-    private func visit(_ node: StringExprNode) {
+    func visit(_ node: StringExprNode) {
         printer.printNode(node, elements: node.value)
     }
 
-    private func visit(_ node: IntExprNode) {
+    func visit(_ node: IntExprNode) {
         printer.printNode(node, elements: node.value)
     }
 
-    private func visit(_ node: NegateExprNode) {
-        printer.printNode(node) { visit(node.expr) }
+    func visit(_ node: NegateExprNode) {
+        printNodeWithChildren(node)
     }
 
-    private func visit(_ node: IsvoidExprNode) {
-        printer.printNode(node) { visit(node.expr) }
+    func visit(_ node: IsvoidExprNode) {
+        printNodeWithChildren(node)
     }
 
-    private func visit(_ node: DispatchExprNode) {
+    func visit(_ node: DispatchExprNode) {
         printer.printNode(node) {
             visit(node.expr)
             if node.isStaticDispatch { printer.printElements(node.staticClass) }
@@ -89,52 +91,36 @@ class PA2ASTPrinter {
         }
     }
 
-    private func visit(_ node: ArithExprNode) {
-        return printer.printNode(node) {
-            visit(node.expr1)
-            visit(node.expr2)
-        }
+    func visit(_ node: ArithExprNode) {
+        printNodeWithChildren(node)
     }
 
-    private func visit(_ node: CompareExprNode) {
-        return printer.printNode(node) {
-            visit(node.expr1)
-            visit(node.expr2)
-        }
+    func visit(_ node: CompareExprNode) {
+        printNodeWithChildren(node)
     }
 
-    private func visit(_ node: NotExprNode) {
-        printer.printNode(node) { visit(node.expr) }
+    func visit(_ node: NotExprNode) {
+        printNodeWithChildren(node)
     }
 
-    private func visit(_ node: AssignExprNode) {
-        printer.printNode(node) {
-            printer.printElements(node.varName)
-            visit(node.expr)
-        }
+    func visit(_ node: AssignExprNode) {
+        printNodeWithChildren(node, elements: node.varName)
     }
 
-    private func visit(_ node: ObjectExprNode) {
+    func visit(_ node: ObjectExprNode) {
         printer.printNode(node, elements: node.varName)
     }
 
-    private func visit(_ node: NewExprNode) {
+    func visit(_ node: NewExprNode) {
         printer.printNode(node, elements: node.newType)
     }
 
-    private func visit(_ node: ConditionalExprNode) {
-        printer.printNode(node) {
-            visit(node.predExpr)
-            visit(node.thenExpr)
-            visit(node.elseExpr)
-        }
+    func visit(_ node: ConditionalExprNode) {
+        printNodeWithChildren(node)
     }
 
-    private func visit(_ node: LoopExprNode) {
-        printer.printNode(node) {
-            visit(node.predExpr)
-            visit(node.body)
-        }
+    func visit(_ node: LoopExprNode) {
+        printNodeWithChildren(node)
     }
 
     private func printBranch(_ branch: Branch) {
@@ -144,49 +130,18 @@ class PA2ASTPrinter {
         }
     }
 
-    private func visit(_ node: CaseExprNode) {
+    func visit(_ node: CaseExprNode) {
         printer.printNode(node) {
             visit(node.expr)
             node.branches.forEach(printBranch)
         }
     }
 
-    private func visit(_ node: BlockExprNode) {
-        printer.printNode(node) {
-            node.exprs.forEach(visit)
-        }
+    func visit(_ node: BlockExprNode) {
+        printNodeWithChildren(node)
     }
 
-    private func visit(_ node: LetExprNode) {
-        printer.printNode(node) {
-            printer.printElements(node.varName, node.varType)
-            visit(node.initExpr)
-            visit(node.bodyExpr)
-        }
-    }
-
-    // swiftlint:disable cyclomatic_complexity
-    private func visit(_ node: ExprNode) {
-        switch node {
-            case let node as LoopExprNode: visit(node)
-            case let node as NotExprNode: visit(node)
-            case let node as BoolExprNode: visit(node)
-            case let node as StringExprNode: visit(node)
-            case let node as IntExprNode: visit(node)
-            case let node as BlockExprNode: visit(node)
-            case let node as NegateExprNode: visit(node)
-            case let node as ObjectExprNode: visit(node)
-            case let node as IsvoidExprNode: visit(node)
-            case let node as LetExprNode: visit(node)
-            case let node as AssignExprNode: visit(node)
-            case let node as ConditionalExprNode: visit(node)
-            case let node as NewExprNode: visit(node)
-            case let node as DispatchExprNode: visit(node)
-            case let node as CaseExprNode: visit(node)
-            case let node as ArithExprNode: visit(node)
-            case let node as CompareExprNode: visit(node)
-            case let node as NoExprNode: visit(node)
-            default: fatalError()
-        }
+    func visit(_ node: LetExprNode) {
+        printNodeWithChildren(node, elements: node.varName, node.varType)
     }
 }
