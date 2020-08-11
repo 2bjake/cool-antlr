@@ -67,7 +67,7 @@ protocol SourceLocated {
     var location: SourceLocation { get }
 }
 
-protocol Node: SourceLocated, PA2Named {}
+protocol Node: SourceLocated, PA2Named, ASTVisitable {}
 
 struct ProgramNode: Node {
     let location: SourceLocation
@@ -230,7 +230,7 @@ struct LoopExprNode: ExprNode {
     let body: ExprNode
 }
 
-struct Branch: SourceLocated {
+struct Branch: SourceLocated {  // TODO: should branch be a node?
     let location: SourceLocation
     let bindName: String
     let bindType: ClassType

@@ -58,7 +58,6 @@ func pa3(parser: CoolParser, fileName: String) throws {
     var ast = astBuilder.build(program)
     var classAnalyzer = ClassDeclSemanticAnalyzer()
     try classAnalyzer.analyze(ast: &ast)
-
     let astPrinter = PA2ASTPrinter()
     astPrinter.printTree(ast)
 }
