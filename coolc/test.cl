@@ -1,5 +1,5 @@
-class Foo inherits Bar {};
+class Foo {};
 
 class Bar inherits Foo {};
 
-class Main {};
+class Main inherits IO {};

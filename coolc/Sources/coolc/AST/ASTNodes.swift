@@ -73,7 +73,7 @@ struct ProgramNode: Node {
     let location: SourceLocation
     private(set) var classes: [ClassNode]
 
-    mutating func addClasses(_ classNodes: ClassNode...) {
+    mutating func addClasses(_ classNodes: [ClassNode]) {
         classes.append(contentsOf: classNodes)
     }
 }
