@@ -16,7 +16,7 @@ enum ClassType {
     case int
     case string
     case main
-    case defined(String)
+    case defined(IdSymbol)
 }
 
 extension ClassType {
@@ -26,32 +26,32 @@ extension ClassType {
 }
 
 extension ClassType: CustomStringConvertible {
-    init(_ str: String) {
-        switch str {
-            case Symbols.selfType: self = .selfType
-            case Symbols.objectTypeName: self = .object
-            case Symbols.ioTypeName: self = .io
-            case Symbols.boolTypeName: self = .bool
-            case Symbols.intTypeName: self = .int
-            case Symbols.stringTypeName: self = .string
-            case Symbols.mainTypeName: self = .main
+    init(_ id: IdSymbol) {
+        switch id {
+            case .selfTypeName: self = .selfType
+            case .objectTypeName: self = .object
+            case .ioTypeName: self = .io
+            case .boolTypeName: self = .bool
+            case .intTypeName: self = .int
+            case .stringTypeName: self = .string
+            case .mainTypeName: self = .main
             default:
-                precondition(str.first?.isUppercase == true)
-                self = .defined(str)
+                precondition(id.value.first?.isUppercase == true)
+                self = .defined(id)
         }
     }
 
     var description: String {
         switch self {
-            case .none: return Symbols.noClass
-            case .selfType: return Symbols.selfType
-            case .object: return Symbols.objectTypeName
-            case .io: return Symbols.ioTypeName
-            case .bool: return Symbols.boolTypeName
-            case .int: return Symbols.intTypeName
-            case .string: return Symbols.stringTypeName
-            case .main: return Symbols.mainTypeName
-            case .defined(let name): return name
+            case .none: return IdSymbol.noClass.value
+            case .selfType: return IdSymbol.selfTypeName.value
+            case .object: return IdSymbol.objectTypeName.value
+            case .io: return IdSymbol.ioTypeName.value
+            case .bool: return IdSymbol.boolTypeName.value
+            case .int: return IdSymbol.intTypeName.value
+            case .string: return IdSymbol.stringTypeName.value
+            case .main: return IdSymbol.mainTypeName.value
+            case .defined(let id): return id.value
         }
     }
 }
@@ -95,13 +95,13 @@ struct ClassNode: Node {
 struct Formal: SourceLocated {
     let location: SourceLocation
     let type: ClassType
-    let name: String
+    let name: IdSymbol
 }
 
 struct MethodNode: Node {
     let location: SourceLocation
     let type: ClassType
-    let name: String
+    let name: IdSymbol
     let formals: [Formal]
     let body: ExprNode
 }
@@ -109,7 +109,7 @@ struct MethodNode: Node {
 struct AttributeNode: Node {
     let location: SourceLocation
     let type: ClassType
-    let name: String
+    let name: IdSymbol
     let initBody: ExprNode
 }
 
@@ -132,13 +132,13 @@ struct BoolExprNode: ExprNode {
 struct StringExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
-    let value: String
+    let value: StringSymbol
 }
 
 struct IntExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
-    let value: Int
+    let value: IntSymbol
 }
 
 struct NegateExprNode: ExprNode {
@@ -158,7 +158,7 @@ struct DispatchExprNode: ExprNode {
     var type: ClassType = .none
     let expr: ExprNode
     let staticClass: ClassType
-    let methodName: String
+    let methodName: IdSymbol
     let args: [ExprNode]
 
     var isStaticDispatch: Bool {
@@ -199,14 +199,14 @@ struct NotExprNode: ExprNode {
 struct AssignExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
-    let varName: String
+    let varName: IdSymbol
     let expr: ExprNode
 }
 
 struct ObjectExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
-    let varName: String
+    let varName: IdSymbol
 }
 
 struct NewExprNode: ExprNode {
@@ -232,7 +232,7 @@ struct LoopExprNode: ExprNode {
 
 struct Branch: SourceLocated {  // TODO: should branch be a node?
     let location: SourceLocation
-    let bindName: String
+    let bindName: IdSymbol
     let bindType: ClassType
     let body: ExprNode
 }
@@ -253,7 +253,7 @@ struct BlockExprNode: ExprNode {
 struct LetExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
-    let varName: String
+    let varName: IdSymbol
     let varType: ClassType
     let initExpr: ExprNode
     let bodyExpr: ExprNode

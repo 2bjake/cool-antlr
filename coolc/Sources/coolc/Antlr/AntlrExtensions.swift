@@ -38,3 +38,17 @@ extension CoolParser.CompareContext {
         }
     }
 }
+
+extension TerminalNode {
+    func getIdSymbol() -> IdSymbol {
+        idTable.add(getText())
+    }
+
+    func getIntSymbol() -> IntSymbol {
+        intTable.add(getText())
+    }
+
+    func getStringSymbol() -> StringSymbol {
+        stringTable.add(getText())
+    }
+}

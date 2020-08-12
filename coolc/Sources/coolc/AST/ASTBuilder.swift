@@ -62,8 +62,8 @@ class ASTBuilder: CoolBaseVisitor<Node> {
     }
 
     override func visitClassDecl(_ ctx: CoolParser.ClassDeclContext) -> Node {
-        let classType = ClassType(ctx.TypeId(0)!.getText())
-        let parentType = ClassType(ctx.TypeId(1)?.getText() ?? Symbols.objectTypeName)
+        let classType = ClassType(ctx.TypeId(0)!.getIdSymbol())
+        let parentType = ClassType(ctx.TypeId(1)?.getIdSymbol() ?? .objectTypeName)
         var features = [Feature]()
         ctx.feature().map(visit).forEach {
             switch $0 {
@@ -77,18 +77,18 @@ class ASTBuilder: CoolBaseVisitor<Node> {
     }
 
     override func visitMethod(_ ctx: CoolParser.MethodContext) -> Node {
-        let type = ClassType(ctx.TypeId()!.getText())
-        let name = ctx.ObjectId()!.getText()
+        let type = ClassType(ctx.TypeId()!.getIdSymbol())
+        let name = ctx.ObjectId()!.getIdSymbol()
         let formals = ctx.formals()!.formal().map {
-            Formal(location: makeLocation($0), type: ClassType($0.TypeId()!.getText()), name: $0.ObjectId()!.getText())
+            Formal(location: makeLocation($0), type: ClassType($0.TypeId()!.getIdSymbol()), name: $0.ObjectId()!.getIdSymbol())
         }
         let body = visitExpr(ctx.expr()!)
         return MethodNode(location: makeLocation(ctx), type: type, name: name, formals: formals, body: body)
     }
 
     override func visitAttr(_ ctx: CoolParser.AttrContext) -> Node {
-        let type = ClassType(ctx.TypeId()!.getText())
-        let name = ctx.ObjectId()!.getText()
+        let type = ClassType(ctx.TypeId()!.getIdSymbol())
+        let name = ctx.ObjectId()!.getIdSymbol()
         let initBody = ctx.expr() != nil ? visitExpr(ctx.expr()!) : NoExprNode.instance
         return AttributeNode(location: makeLocation(ctx), type: type, name: name, initBody: initBody)
     }
@@ -110,12 +110,12 @@ class ASTBuilder: CoolBaseVisitor<Node> {
     }
 
     override func visitStringConst(_ ctx: CoolParser.StringConstContext) -> Node {
-        let value = ctx.String()!.getText()
+        let value = ctx.String()!.getStringSymbol()
         return StringExprNode(location: makeLocation(ctx), value: value)
     }
 
     override func visitIntConst(_ ctx: CoolParser.IntConstContext) -> Node {
-        let value = Int(ctx.Int()!.getText())!
+        let value = ctx.Int()!.getIntSymbol()
         return IntExprNode(location: makeLocation(ctx), value: value)
     }
 
@@ -140,7 +140,7 @@ class ASTBuilder: CoolBaseVisitor<Node> {
     }
 
     override func visitObject(_ ctx: CoolParser.ObjectContext) -> Node {
-        let varName = ctx.ObjectId()!.getText()
+        let varName = ctx.ObjectId()!.getIdSymbol()
         return ObjectExprNode(location: makeLocation(ctx), varName: varName)
     }
 
@@ -167,8 +167,8 @@ class ASTBuilder: CoolBaseVisitor<Node> {
             return visitExpr(ctx.expr()!)
         } else {
             let letvar = ctx.letvar()[index]
-            let varName = letvar.ObjectId()!.getText()
-            let varType = ClassType(letvar.TypeId()!.getText())
+            let varName = letvar.ObjectId()!.getIdSymbol()
+            let varType = ClassType(letvar.TypeId()!.getIdSymbol())
             let initExpr = letvar.expr() == nil ? NoExprNode.instance : visitExpr(letvar.expr()!)
             let bodyExpr = buildLetVar(index: index + 1, ctx)
             return LetExprNode(location: makeLocation(ctx), varName: varName, varType: varType, initExpr: initExpr, bodyExpr: bodyExpr)
@@ -180,7 +180,7 @@ class ASTBuilder: CoolBaseVisitor<Node> {
     }
 
     override func visitAssign(_ ctx: CoolParser.AssignContext) -> Node {
-        let varName = ctx.ObjectId()!.getText()
+        let varName = ctx.ObjectId()!.getIdSymbol()
         let expr = ctx.expr() != nil ? visitExpr(ctx.expr()!) : NoExprNode.instance
         return AssignExprNode(location: makeLocation(ctx), varName: varName, expr: expr)
     }
@@ -193,13 +193,13 @@ class ASTBuilder: CoolBaseVisitor<Node> {
     }
 
     override func visitNew(_ ctx: CoolParser.NewContext) -> Node {
-        let newType = ClassType(ctx.TypeId()!.getText())
+        let newType = ClassType(ctx.TypeId()!.getIdSymbol())
         return NewExprNode(location: makeLocation(ctx), newType: newType)
     }
 
     override func visitDispatch(_ ctx: CoolParser.DispatchContext) -> Node {
         let expr = visitExpr(ctx.expr()!)
-        let methodName = ctx.ObjectId()!.getText()
+        let methodName = ctx.ObjectId()!.getIdSymbol()
         let args = ctx.args()?.expr().map(visitExpr) ?? []
 
         return DispatchExprNode(location: makeLocation(ctx), expr: expr, staticClass: .none, methodName: methodName, args: args)
@@ -207,8 +207,8 @@ class ASTBuilder: CoolBaseVisitor<Node> {
 
     override func visitSelfDispatch(_ ctx: CoolParser.SelfDispatchContext) -> Node {
         let location = makeLocation(ctx)
-        let expr = ObjectExprNode(location: location, varName: Symbols.selfName)
-        let methodName = ctx.ObjectId()!.getText()
+        let expr = ObjectExprNode(location: location, varName: .selfName)
+        let methodName = ctx.ObjectId()!.getIdSymbol()
         let args = ctx.args()?.expr().map(visitExpr) ?? []
 
         return DispatchExprNode(location: location, expr: expr, staticClass: .none, methodName: methodName, args: args)
@@ -216,8 +216,8 @@ class ASTBuilder: CoolBaseVisitor<Node> {
 
     override func visitStaticDispatch(_ ctx: CoolParser.StaticDispatchContext) -> Node {
         let expr = visitExpr(ctx.expr()!)
-        let staticClass = ClassType(ctx.TypeId()!.getText())
-        let methodName = ctx.ObjectId()!.getText()
+        let staticClass = ClassType(ctx.TypeId()!.getIdSymbol())
+        let methodName = ctx.ObjectId()!.getIdSymbol()
         let args = ctx.args()?.expr().map(visitExpr) ?? []
 
         return DispatchExprNode(location: makeLocation(ctx), expr: expr, staticClass: staticClass, methodName: methodName, args: args)
@@ -226,8 +226,8 @@ class ASTBuilder: CoolBaseVisitor<Node> {
     override func visitCase(_ ctx: CoolParser.CaseContext) -> Node {
         let expr = visitExpr(ctx.expr()!)
         let branches: [Branch] = ctx.branch().map {
-            let bindName = $0.ObjectId()!.getText()
-            let bindType = ClassType($0.TypeId()!.getText())
+            let bindName = $0.ObjectId()!.getIdSymbol()
+            let bindType = ClassType($0.TypeId()!.getIdSymbol())
             let body = visitExpr($0.expr()!)
             return Branch(location: makeLocation($0), bindName: bindName, bindType: bindType, body: body)
         }
