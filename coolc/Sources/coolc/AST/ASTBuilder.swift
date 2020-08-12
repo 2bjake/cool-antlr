@@ -11,10 +11,17 @@ import Foundation
 // swiftlint:disable force_cast
 class ASTBuilder: CoolBaseVisitor<Node> {
 
-    let fileName: String
+    private let fileName: String
+    private var errorCount: Int = 0
 
     init(fileName: String) {
         self.fileName = fileName
+    }
+
+    private func printError(_ location: String, _ line: Int) {
+        errorCount += 1
+        let msg = makeErrorMsg(at: location)
+        errPrint("\"\(fileName)\", line \(line): \(msg)")
     }
 
     private func makeLocation(_ ctx: ParserRuleContext) -> SourceLocation {
@@ -37,11 +44,19 @@ class ASTBuilder: CoolBaseVisitor<Node> {
         return visit(tree) as! ExprNode
     }
 
-    func build(_ program: CoolParser.ProgramContext) -> ProgramNode {
-        return visit(program) as! ProgramNode
+    func build(_ program: CoolParser.ProgramContext) throws -> ProgramNode {
+        guard let programNode = visit(program) as? ProgramNode, errorCount == 0 else {
+            throw CompilerError.parseError
+        }
+        return programNode
     }
 
     override func visitProgram(_ ctx: CoolParser.ProgramContext) -> Node {
+        guard ctx.getChildCount() > 0 else {
+            printError("EOF", 0)
+            return NoExprNode()
+        }
+
         let classes = ctx.classDecl().map { visit($0) as! ClassNode }
         return ProgramNode(location: makeLocation(ctx), classes: classes)
     }
@@ -135,8 +150,15 @@ class ASTBuilder: CoolBaseVisitor<Node> {
     }
 
     override func visitCompare(_ ctx: CoolParser.CompareContext) -> Node {
+        // check for illegal compare statements like 1 < 2 < 3
+        if let comp = ctx.expr().first(where: { $0 is CoolParser.CompareContext}) {
+            printError(comp.text, comp.lineNum)
+            return NoExprNode()
+        }
+
         let expr1 = visitExpr(ctx.expr(0)!)
         let expr2 = visitExpr(ctx.expr(1)!)
+
         return CompareExprNode(location: makeLocation(ctx), expr1: expr1, op: ctx.op, expr2: expr2)
     }
 

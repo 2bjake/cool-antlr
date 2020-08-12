@@ -17,7 +17,7 @@ func makeParser(for fileName: String) throws -> CoolParser {
     return try CoolParser(tokens)
 }
 
-func buildProgramTree(parser: CoolParser, fileName: String) throws -> CoolParser.ProgramContext {
+func buildProgramTree(parser: CoolParser, fileName: String) throws -> ProgramNode {
     let errorStrategy = PA2ErrorStrategy()
     parser.setErrorHandler(errorStrategy)
     parser.removeErrorListeners()
@@ -27,14 +27,11 @@ func buildProgramTree(parser: CoolParser, fileName: String) throws -> CoolParser
 
     let tree = try parser.program()
 
-    let walker = ParseTreeWalker()
-    let syntaxProcessor = SyntaxAnalyzer(fileName: fileName)
-    try walker.walk(syntaxProcessor, tree)
-
-    guard errorListener.errorCount == 0 && syntaxProcessor.errorCount == 0 else {
+    guard errorListener.errorCount == 0 else {
         throw CompilerError.parseError
     }
-    return tree
+
+    return try ASTBuilder(fileName: fileName).build(tree)
 }
 
 func pa1(parser: CoolParser) throws {
@@ -45,21 +42,16 @@ func pa1(parser: CoolParser) throws {
 
 func pa2(parser: CoolParser, fileName: String) throws {
     let program = try buildProgramTree(parser: parser, fileName: fileName)
-
-    let astBuilder = ASTBuilder(fileName: fileName)
-    let ast = astBuilder.build(program)
     let astPrinter = PA2ASTPrinter()
-    astPrinter.printTree(ast)
+    astPrinter.printTree(program)
 }
 
 func pa3(parser: CoolParser, fileName: String) throws {
-    let program = try buildProgramTree(parser: parser, fileName: fileName)
-    let astBuilder = ASTBuilder(fileName: fileName)
-    var ast = astBuilder.build(program)
+    var program = try buildProgramTree(parser: parser, fileName: fileName)
     var classAnalyzer = ClassDeclSemanticAnalyzer()
-    try classAnalyzer.analyze(ast: &ast)
+    try classAnalyzer.analyze(ast: &program)
     let astPrinter = PA2ASTPrinter()
-    astPrinter.printTree(ast)
+    astPrinter.printTree(program)
 }
 
 enum Program {
