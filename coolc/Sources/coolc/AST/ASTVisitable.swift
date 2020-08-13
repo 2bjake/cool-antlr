@@ -16,8 +16,6 @@ extension Node {
     }
 }
 
-// TODO: investigate whether a property wrapper could simplify this
-
 extension ProgramNode {
     var children: [Node] { classes }
 }

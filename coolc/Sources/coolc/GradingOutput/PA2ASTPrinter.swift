@@ -66,7 +66,7 @@ class PA2ASTPrinter: ASTVisitor {
     }
 
     func visit(_ node: StringExprNode) {
-        printer.printNode(node, elements: node.value)
+        printer.printNode(node, elements: "\"\(node.value)\"")
     }
 
     func visit(_ node: IntExprNode) {
