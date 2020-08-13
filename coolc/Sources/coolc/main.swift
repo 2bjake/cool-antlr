@@ -31,7 +31,7 @@ func buildProgramTree(parser: CoolParser, fileName: String) throws -> ProgramNod
         throw CompilerError.parseError
     }
 
-    return try ASTBuilder(fileName: fileName).build(tree)
+    return try makeBuilder(fileName: fileName).build(tree)
 }
 
 func pa1(parser: CoolParser) throws {
@@ -49,7 +49,8 @@ func pa2(parser: CoolParser, fileName: String) throws {
 func pa3(parser: CoolParser, fileName: String) throws {
     var program = try buildProgramTree(parser: parser, fileName: fileName)
     var classAnalyzer = ClassDeclSemanticAnalyzer()
-    try classAnalyzer.analyze(ast: &program)
+    let objectClass = try classAnalyzer.analyze(ast: &program)
+    TypeCheckSemanticAnalyzer().analyze(program: program, rootClass: objectClass)
     let astPrinter = PA2ASTPrinter()
     astPrinter.printTree(program)
 }

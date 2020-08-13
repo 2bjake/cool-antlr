@@ -1,5 +1,5 @@
 //
-//  ASTWalker.swift
+//  CoolWalker.swift
 //
 //
 //  Created by Jake Foster on 8/11/20.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ASTWalker: ASTVisitor {
+struct Walker: Visitor {
     func walk(ast: ProgramNode) {
         visit(ast)
     }

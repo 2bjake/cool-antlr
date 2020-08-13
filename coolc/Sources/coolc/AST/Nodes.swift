@@ -16,7 +16,7 @@ protocol SourceLocated {
     var location: SourceLocation { get }
 }
 
-protocol Node: SourceLocated, PA2Named, ASTVisitable {}
+protocol Node: SourceLocated, PA2Named, Visitable {}
 
 class ProgramNode: Node {
     let location: SourceLocation

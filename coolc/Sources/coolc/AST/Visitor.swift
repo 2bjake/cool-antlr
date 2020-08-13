@@ -1,11 +1,11 @@
 //
-//  ASTVisitor.swift
+//  Visitor.swift
 //
 //
 //  Created by Jake Foster on 8/11/20.
 //
 
-protocol ASTVisitor {
+protocol Visitor {
     func visit(_ node: Node)
     func visit(_ node: ProgramNode)
     func visit(_ node: ClassNode)
@@ -33,13 +33,13 @@ protocol ASTVisitor {
     func visitChildren(_ node: Node)
 }
 
-extension ASTVisitor {
+extension Visitor {
     func visitChildren(_ node: Node) {
         node.children.forEach { $0.accept(self) }
     }
 }
 
-extension ASTVisitor {
+extension Visitor {
     func visit(_ node: Node) {
         switch node {
             case let node as ProgramNode: visit(node)

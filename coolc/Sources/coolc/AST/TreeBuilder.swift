@@ -1,5 +1,5 @@
 //
-//  ASTBuilder.swift
+//  TreeBuilder.swift
 //
 //
 //  Created by Jake Foster on 8/9/20.
@@ -8,8 +8,16 @@
 import Antlr4
 import Foundation
 
+protocol TreeBuilder {
+    func build(_ program: CoolParser.ProgramContext) throws -> ProgramNode
+}
+
+func makeBuilder(fileName: String) -> TreeBuilder {
+    TreeBuilderVisitor(fileName: fileName)
+}
+
 // swiftlint:disable force_cast
-class ASTBuilder: CoolBaseVisitor<Node> {
+private class TreeBuilderVisitor: CoolBaseVisitor<Node>, TreeBuilder {
 
     private let fileName: String
     private var errorCount: Int = 0
@@ -36,11 +44,11 @@ class ASTBuilder: CoolBaseVisitor<Node> {
         return tree.accept(self) ?? NoExprNode.instance
     }
 
-    func visitClass(_ tree: ParseTree) -> ClassNode {
+    private func visitClass(_ tree: ParseTree) -> ClassNode {
         return visit(tree) as! ClassNode
     }
 
-    func visitExpr(_ tree: ParseTree) -> ExprNode {
+    private func visitExpr(_ tree: ParseTree) -> ExprNode {
         return visit(tree) as! ExprNode
     }
 

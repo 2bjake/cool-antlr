@@ -8,7 +8,7 @@
 import Foundation
 
 // prints the AST in the format that PA2 grading scripts expect
-class PA2ASTPrinter: ASTVisitor {
+class PA2ASTPrinter: Visitor {
     private let printer = PA2Printer()
 
     func printTree(_ node: ProgramNode) {

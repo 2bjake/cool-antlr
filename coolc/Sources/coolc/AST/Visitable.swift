@@ -1,17 +1,17 @@
 //
-//  ASTVisitable.swift
+//  Visitable.swift
 //
 //
 //  Created by Jake Foster on 8/11/20.
 //
 
-protocol ASTVisitable {
-    func accept(_ visitor: ASTVisitor)
+protocol Visitable {
+    func accept(_ visitor: Visitor)
     var children: [Node] { get }
 }
 
 extension Node {
-    func accept(_ visitor: ASTVisitor) {
+    func accept(_ visitor: Visitor) {
         visitor.visit(self)
     }
 }

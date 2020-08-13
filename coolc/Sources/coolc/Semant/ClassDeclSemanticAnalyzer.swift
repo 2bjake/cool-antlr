@@ -12,7 +12,7 @@ struct SemanticError: Error {
 
 struct ClassDeclSemanticAnalyzer {
     private var errCount = 0
-    private(set) var validClasses = [ClassType: ClassNode]()
+    private var validClasses = [ClassType: ClassNode]()
 
     private mutating func printError(message: String, location: SourceLocation) {
         errCount += 1
@@ -51,7 +51,7 @@ struct ClassDeclSemanticAnalyzer {
         return true
     }
 
-    private mutating func installBasicClasses(ast: inout ProgramNode) {
+    private mutating func installBasicClasses(ast: inout ProgramNode) -> ClassNode {
         let location = SourceLocation(fileName: "<basic class>", lineNumber: 0)
 
         func makeMethod(name: IdSymbol, type: ClassType, formals: [Formal] = []) -> Feature {
@@ -68,11 +68,12 @@ struct ClassDeclSemanticAnalyzer {
 
         var builtInClasses = [ClassNode]()
 
-        builtInClasses.append(ClassNode(location: location, classType: .object, parentType: .none, features: [
+        let objectClass = ClassNode(location: location, classType: .object, parentType: .none, features: [
             makeMethod(name: .abort, type: .object),
             makeMethod(name: .typeName, type: .string),
             makeMethod(name: .copy, type: .selfType)
-        ]))
+        ])
+        builtInClasses.append(objectClass)
 
         builtInClasses.append(ClassNode(location: location, classType: .io, parentType: .object, features: [
             makeMethod(name: .outString, type: .selfType, formals: [makeFormal(name: .arg, type: .string)]),
@@ -96,6 +97,7 @@ struct ClassDeclSemanticAnalyzer {
 
         ast.addClasses(builtInClasses)
         builtInClasses.forEach { validClasses[$0.classType] = $0 }
+        return objectClass
     }
 
     private mutating func checkClassInheritance(_ classNode: ClassNode) {
@@ -123,7 +125,8 @@ struct ClassDeclSemanticAnalyzer {
 
     // Installs basic classes into the AST and verifies that all
     // class declarations are valid (including a check for inheritance cycles)
-    mutating func analyze(ast: inout ProgramNode) throws {
+    // returns the root node of the class hierarchy (Object)
+    mutating func analyze(ast: inout ProgramNode) throws -> ClassNode {
         for node in ast.classes {
             if checkClassRules(node) {
                 validClasses[node.classType] = node
@@ -138,13 +141,15 @@ struct ClassDeclSemanticAnalyzer {
             throw CompilerError.semanticError
         }
 
-        installBasicClasses(ast: &ast)
+        let objectClass = installBasicClasses(ast: &ast)
 
         // check inheritance
         validClasses.values.forEach { checkClassInheritance($0) }
 
         if errCount > 0 {
             throw CompilerError.semanticError
+        } else {
+            return objectClass
         }
     }
 }
