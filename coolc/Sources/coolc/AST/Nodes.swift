@@ -42,8 +42,20 @@ class ClassNode: Node {
     let classType: ClassType
     let parentType: ClassType
     let features: [Feature]
-//    let methods: [MethodNode]
-//    let attributes: [AttributeNode]
+    lazy private(set) var methods: [MethodNode] = {
+        features.compactMap {
+            if case .method(let method) = $0 { return method }
+            return nil
+        }
+    }()
+
+    lazy private(set) var attributes: [AttributeNode] = {
+        features.compactMap {
+            if case .attribute(let attribute) = $0 { return attribute }
+            return nil
+        }
+    }()
+
     private(set) var childClasses: [ClassNode] = []
 
     init(location: SourceLocation, classType: ClassType, parentType: ClassType, features: [Feature]) {

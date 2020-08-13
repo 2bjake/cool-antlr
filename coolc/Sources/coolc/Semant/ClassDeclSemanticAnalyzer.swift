@@ -36,11 +36,9 @@ struct ClassDeclSemanticAnalyzer {
             return false
         }
 
-        for constantType in ClassType.constantTypes {
-            guard classNode.parentType != constantType else {
-                printError(message: "Class \(classNode.classType) cannot inherit from \(constantType)", location: classNode.location)
-                return false
-            }
+        guard classNode.parentType.isInheritable else {
+            printError(message: "Class \(classNode.classType) cannot inherit from \(classNode.parentType)", location: classNode.location)
+            return false
         }
 
         guard validClasses[classNode.classType] == nil else {

@@ -21,6 +21,7 @@ extension ClassType {
     static let constantTypes = [ClassType.bool, .string, .int]
     static let builtInTypes = [ClassType.object, .int, .bool, .string, .io]
     var isBuiltInClass: Bool { Self.builtInTypes.contains(self) }
+    var isInheritable: Bool { !Self.constantTypes.contains(self) }
 }
 
 extension ClassType: CustomStringConvertible {

@@ -28,46 +28,8 @@ class PA1TokenPrinter: CoolBaseListener {
         printToken("INT_CONST", ctx)
     }
 
-    private func processChar(_ char: Character) -> String {
-        switch char {
-            case "\n": return "\\n"
-            case "\t": return "\\t"
-            case "\u{000C}": return "\\f"
-            case "\u{0008}": return "\\b"
-            default:
-                if let asciiVal = char.asciiValue, asciiVal > 0, asciiVal <= 31 {
-                    return "\\0\(String(asciiVal, radix: 8))"
-                } else {
-                    return "\(char)"
-                }
-        }
-    }
-
     override func enterString(_ ctx: CoolParser.StringContext) {
-        // token has start and end double quotes. Strip them off.
-        let stripped = ctx.text.dropFirst().dropLast()
-
-        // TODO: for now, rewrite string for output, later figure out how to persist in tree
-        var processed = ""
-        var index = stripped.startIndex
-        while index != stripped.endIndex {
-            let next = stripped.index(after: index)
-            if stripped[index] != "\\" {
-                processed.append(processChar(stripped[index]))
-                index = next
-            } else {
-                precondition(next != stripped.endIndex)
-                switch stripped[next] {
-                    case "b", "t", "n", "f", "\\", "\"":
-                        processed.append("\\")
-                        processed.append(stripped[next])
-                    default:
-                        processed.append(processChar(stripped[next]))
-                }
-                index = stripped.index(after: next)
-            }
-        }
-        printToken("STR_CONST", ctx.lineNum, "\"\(processed)\"")
+        printToken("STR_CONST", ctx.lineNum, "\"\(processString(ctx.text))\"")
     }
 
     override func enterBool(_ ctx: CoolParser.BoolContext) {

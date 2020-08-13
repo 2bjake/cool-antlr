@@ -50,7 +50,8 @@ func pa3(parser: CoolParser, fileName: String) throws {
     var program = try buildProgramTree(parser: parser, fileName: fileName)
     var classAnalyzer = ClassDeclSemanticAnalyzer()
     let objectClass = try classAnalyzer.analyze(ast: &program)
-    TypeCheckSemanticAnalyzer().analyze(program: program, rootClass: objectClass)
+    var typeChecker = TypeCheckSemanticAnalyzer(program: program, objectClass: objectClass)
+    try typeChecker.analyze()
     let astPrinter = PA2ASTPrinter()
     astPrinter.printTree(program)
 }
