@@ -44,12 +44,17 @@ class ClassNode: Node {
     let features: [Feature]
 //    let methods: [MethodNode]
 //    let attributes: [AttributeNode]
+    private(set) var childClasses: [ClassNode] = []
 
     init(location: SourceLocation, classType: ClassType, parentType: ClassType, features: [Feature]) {
         self.location = location
         self.classType = classType
         self.parentType = parentType
         self.features = features
+    }
+
+    func addChildClass(_ childClass: ClassNode) {
+        childClasses.append(childClass)
     }
 }
 

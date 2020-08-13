@@ -115,6 +115,10 @@ struct ClassDeclSemanticAnalyzer {
             }
             curNode = validClasses[node.parentType]
         }
+
+        if !hasCycle, let parent = validClasses[classNode.parentType] {
+            parent.addChildClass(classNode)
+        }
     }
 
     // Installs basic classes into the AST and verifies that all
