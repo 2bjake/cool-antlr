@@ -18,12 +18,17 @@ protocol SourceLocated {
 
 protocol Node: SourceLocated, PA2Named, ASTVisitable {}
 
-struct ProgramNode: Node {
+class ProgramNode: Node {
     let location: SourceLocation
     private(set) var classes: [ClassNode]
 
-    mutating func addClasses(_ classNodes: [ClassNode]) {
+    func addClasses(_ classNodes: [ClassNode]) {
         classes.append(contentsOf: classNodes)
+    }
+
+    init(location: SourceLocation, classes: [ClassNode]) {
+        self.location = location
+        self.classes = classes
     }
 }
 
@@ -32,13 +37,20 @@ enum Feature {
     case attribute(AttributeNode)
 }
 
-struct ClassNode: Node {
+class ClassNode: Node {
     let location: SourceLocation
     let classType: ClassType
     let parentType: ClassType
     let features: [Feature]
 //    let methods: [MethodNode]
 //    let attributes: [AttributeNode]
+
+    init(location: SourceLocation, classType: ClassType, parentType: ClassType, features: [Feature]) {
+        self.location = location
+        self.classType = classType
+        self.parentType = parentType
+        self.features = features
+    }
 }
 
 struct Formal: SourceLocated {
@@ -47,19 +59,34 @@ struct Formal: SourceLocated {
     let name: IdSymbol
 }
 
-struct MethodNode: Node {
+class MethodNode: Node {
     let location: SourceLocation
     let type: ClassType
     let name: IdSymbol
     let formals: [Formal]
     let body: ExprNode
+
+    init(location: SourceLocation, type: ClassType, name: IdSymbol, formals: [Formal], body: ExprNode) {
+        self.location = location
+        self.type = type
+        self.name = name
+        self.formals = formals
+        self.body = body
+    }
 }
 
-struct AttributeNode: Node {
+class AttributeNode: Node {
     let location: SourceLocation
     let type: ClassType
     let name: IdSymbol
     let initBody: ExprNode
+
+    init(location: SourceLocation, type: ClassType, name: IdSymbol, initBody: ExprNode) {
+        self.location = location
+        self.type = type
+        self.name = name
+        self.initBody = initBody
+    }
 }
 
 protocol ExprNode: Node {
@@ -69,40 +96,50 @@ protocol ExprNode: Node {
 struct NoExprNode: ExprNode {
     static let instance: NoExprNode = .init()
     let location = SourceLocation(fileName: "", lineNumber: 0)
-    var type: ClassType = .none
+    let type: ClassType = .none
 }
 
 struct BoolExprNode: ExprNode {
     let location: SourceLocation
-    var type: ClassType = .none
+    let type: ClassType = .bool
     let value: Bool
 }
 
 struct StringExprNode: ExprNode {
     let location: SourceLocation
-    var type: ClassType = .none
+    let type: ClassType = .string
     let value: StringSymbol
 }
 
 struct IntExprNode: ExprNode {
     let location: SourceLocation
-    var type: ClassType = .none
+    let type: ClassType = .int
     let value: IntSymbol
 }
 
-struct NegateExprNode: ExprNode {
+class NegateExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let expr: ExprNode
+
+    init(location: SourceLocation, expr: ExprNode) {
+        self.location = location
+        self.expr = expr
+    }
 }
 
-struct IsvoidExprNode: ExprNode {
+class IsvoidExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let expr: ExprNode
+
+    init(location: SourceLocation, expr: ExprNode) {
+        self.location = location
+        self.expr = expr
+    }
 }
 
-struct DispatchExprNode: ExprNode {
+class DispatchExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let expr: ExprNode
@@ -117,66 +154,122 @@ struct DispatchExprNode: ExprNode {
             return true
         }
     }
+
+    init(location: SourceLocation, expr: ExprNode, staticClass: ClassType, methodName: IdSymbol, args: [ExprNode]) {
+        self.location = location
+        self.expr = expr
+        self.staticClass = staticClass
+        self.methodName = methodName
+        self.args = args
+    }
 }
 
 enum ArithOp { case plus, sub, mul, div }
 
-struct ArithExprNode: ExprNode {
+class ArithExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let expr1: ExprNode
     let op: ArithOp
     let expr2: ExprNode
+
+    init(location: SourceLocation, expr1: ExprNode, op: ArithOp, expr2: ExprNode) {
+        self.location = location
+        self.expr1 = expr1
+        self.op = op
+        self.expr2 = expr2
+    }
 }
 
 enum CompOp { case eq, lt, le }
 
-struct CompareExprNode: ExprNode {
+class CompareExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let expr1: ExprNode
     let op: CompOp
     let expr2: ExprNode
+
+    init(location: SourceLocation, expr1: ExprNode, op: CompOp, expr2: ExprNode) {
+        self.location = location
+        self.expr1 = expr1
+        self.op = op
+        self.expr2 = expr2
+    }
 }
 
-struct NotExprNode: ExprNode {
+class NotExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let expr: ExprNode
+
+    init(location: SourceLocation, expr: ExprNode) {
+        self.location = location
+        self.expr = expr
+    }
 }
 
-struct AssignExprNode: ExprNode {
+class AssignExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let varName: IdSymbol
     let expr: ExprNode
+
+    init(location: SourceLocation, varName: IdSymbol, expr: ExprNode) {
+        self.location = location
+        self.varName = varName
+        self.expr = expr
+    }
 }
 
-struct ObjectExprNode: ExprNode {
+class ObjectExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let varName: IdSymbol
+
+    init(location: SourceLocation, varName: IdSymbol) {
+        self.location = location
+        self.varName = varName
+    }
 }
 
-struct NewExprNode: ExprNode {
+class NewExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let newType: ClassType
+
+    init(location: SourceLocation, newType: ClassType) {
+        self.location = location
+        self.newType = newType
+    }
 }
 
-struct ConditionalExprNode: ExprNode {
+class ConditionalExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let predExpr: ExprNode
     let thenExpr: ExprNode
     let elseExpr: ExprNode
+
+    init(location: SourceLocation, predExpr: ExprNode, thenExpr: ExprNode, elseExpr: ExprNode) {
+        self.location = location
+        self.predExpr = predExpr
+        self.thenExpr = thenExpr
+        self.elseExpr = elseExpr
+    }
 }
 
-struct LoopExprNode: ExprNode {
+class LoopExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let predExpr: ExprNode
     let body: ExprNode
+
+    init(location: SourceLocation, predExpr: ExprNode, body: ExprNode) {
+        self.location = location
+        self.predExpr = predExpr
+        self.body = body
+    }
 }
 
 struct Branch: SourceLocated {  // TODO: should branch be a node?
@@ -186,24 +279,43 @@ struct Branch: SourceLocated {  // TODO: should branch be a node?
     let body: ExprNode
 }
 
-struct CaseExprNode: ExprNode {
+class CaseExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let expr: ExprNode
     let branches: [Branch]
+
+    init(location: SourceLocation, expr: ExprNode, branches: [Branch]) {
+        self.location = location
+        self.expr = expr
+        self.branches = branches
+    }
 }
 
-struct BlockExprNode: ExprNode {
+class BlockExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let exprs: [ExprNode]
+
+    init(location: SourceLocation, exprs: [ExprNode]) {
+        self.location = location
+        self.exprs = exprs
+    }
 }
 
-struct LetExprNode: ExprNode {
+class LetExprNode: ExprNode {
     let location: SourceLocation
     var type: ClassType = .none
     let varName: IdSymbol
     let varType: ClassType
     let initExpr: ExprNode
     let bodyExpr: ExprNode
+
+    init(location: SourceLocation, varName: IdSymbol, varType: ClassType, initExpr: ExprNode, bodyExpr: ExprNode) {
+        self.location = location
+        self.varName = varName
+        self.varType = varType
+        self.initExpr = initExpr
+        self.bodyExpr = bodyExpr
+    }
 }
