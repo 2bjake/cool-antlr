@@ -51,7 +51,6 @@ extension Visitor {
         }
     }
 
-
     // swiftlint:disable cyclomatic_complexity
     func visit(_ node: ExprNode) {
         switch node {

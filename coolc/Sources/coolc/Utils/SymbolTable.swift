@@ -22,6 +22,10 @@ struct SymbolTable<Data> {
         return remainingScopes.first?[id]
     }
 
+    func contains(_ id: IdSymbol) -> Bool {
+        lookup(id) != nil
+    }
+
     func probe(_ id: IdSymbol) -> Data? {
         scopes.last?[id]
     }

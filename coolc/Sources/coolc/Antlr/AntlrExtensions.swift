@@ -54,7 +54,7 @@ private func processChar(_ char: Character) -> String {
     }
 }
 
-func processString(_ str: String) -> String{
+func processString(_ str: String) -> String {
     // token has start and end double quotes. Strip them off.
     let stripped = str.dropFirst().dropLast()
 
