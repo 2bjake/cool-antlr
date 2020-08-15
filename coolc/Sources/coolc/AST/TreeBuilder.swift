@@ -201,8 +201,8 @@ private class TreeBuilderVisitor: CoolBaseVisitor<Node>, TreeBuilder {
     }
 
     override func visitNew(_ ctx: CoolParser.NewContext) -> Node {
-        let newType = ClassType(ctx.TypeId()!.getIdSymbol())
-        return NewExprNode(location: makeLocation(ctx), newType: newType)
+        let type = ClassType(ctx.TypeId()!.getIdSymbol())
+        return NewExprNode(location: makeLocation(ctx), type: type)
     }
 
     override func visitDispatch(_ ctx: CoolParser.DispatchContext) -> Node {

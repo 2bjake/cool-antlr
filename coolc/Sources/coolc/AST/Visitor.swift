@@ -76,3 +76,28 @@ extension Visitor {
         }
     }
 }
+
+class BaseVisitor: Visitor {
+    func visit(_ node: ProgramNode) { visitChildren(node) }
+    func visit(_ node: ClassNode) { visitChildren(node) }
+    func visit(_ node: AttributeNode) { visitChildren(node) }
+    func visit(_ node: MethodNode) { visitChildren(node) }
+    func visit(_ node: NoExprNode) { visitChildren(node) }
+    func visit(_ node: BoolExprNode) { visitChildren(node) }
+    func visit(_ node: StringExprNode) { visitChildren(node) }
+    func visit(_ node: IntExprNode) { visitChildren(node) }
+    func visit(_ node: NegateExprNode) { visitChildren(node) }
+    func visit(_ node: IsvoidExprNode) { visitChildren(node) }
+    func visit(_ node: DispatchExprNode) { visitChildren(node) }
+    func visit(_ node: ArithExprNode) { visitChildren(node) }
+    func visit(_ node: CompareExprNode) { visitChildren(node) }
+    func visit(_ node: NotExprNode) { visitChildren(node) }
+    func visit(_ node: AssignExprNode) { visitChildren(node) }
+    func visit(_ node: ObjectExprNode) { visitChildren(node) }
+    func visit(_ node: NewExprNode) { visitChildren(node) }
+    func visit(_ node: ConditionalExprNode) { visitChildren(node) }
+    func visit(_ node: LoopExprNode) { visitChildren(node) }
+    func visit(_ node: CaseExprNode) { visitChildren(node) }
+    func visit(_ node: BlockExprNode) { visitChildren(node) }
+    func visit(_ node: LetExprNode) { visitChildren(node) }
+}

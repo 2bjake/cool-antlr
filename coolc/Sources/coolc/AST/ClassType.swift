@@ -42,7 +42,7 @@ extension ClassType: CustomStringConvertible {
 
     var description: String {
         switch self {
-            case .none: return IdSymbol.noClass.value
+            case .none: return IdSymbol.noType.value
             case .selfType: return IdSymbol.selfTypeName.value
             case .object: return IdSymbol.objectTypeName.value
             case .io: return IdSymbol.ioTypeName.value

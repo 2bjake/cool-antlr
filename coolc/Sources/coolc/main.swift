@@ -42,17 +42,15 @@ func pa1(parser: CoolParser) throws {
 
 func pa2(parser: CoolParser, fileName: String) throws {
     let program = try buildProgramTree(parser: parser, fileName: fileName)
-    let astPrinter = PA2ASTPrinter()
-    astPrinter.printTree(program)
+    let astPrinter = ASTPrinter()
+    astPrinter.printTree(program, printTypeNames: false)
 }
 
 func pa3(parser: CoolParser, fileName: String) throws {
     var program = try buildProgramTree(parser: parser, fileName: fileName)
-    var classAnalyzer = ClassDeclSemanticAnalyzer()
-    let objectClass = try classAnalyzer.analyze(ast: &program)
-    var typeChecker = TypeCheckSemanticAnalyzer(program: program, objectClass: objectClass)
-    try typeChecker.analyze()
-    let astPrinter = PA2ASTPrinter()
+    var analyzer = SemanticAnalyzer()
+    try analyzer.analyze(program: &program)
+    let astPrinter = ASTPrinter()
     astPrinter.printTree(program)
 }
 

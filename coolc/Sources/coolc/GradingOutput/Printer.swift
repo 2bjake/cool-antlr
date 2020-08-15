@@ -1,11 +1,11 @@
 //
-//  PA2Printer.swift
+//  Printer.swift
 //
 //
 //  Created by Jake Foster on 8/9/20.
 //
 
-struct PA2Indention: CustomStringConvertible {
+private struct Indention: CustomStringConvertible {
     var description = ""
 
     mutating func inc() {
@@ -17,8 +17,9 @@ struct PA2Indention: CustomStringConvertible {
     }
 }
 
-class PA2Printer {
-    private var indention = PA2Indention()
+class Printer {
+    private var indention = Indention()
+    var printTypeNames = true // this is only for PA2 grading, eventually it can be removed
 
     func indent() { indention.inc() }
     func dedent() { indention.dec() }
@@ -38,7 +39,9 @@ class PA2Printer {
     }
 
     func printTypeName(_ node: ExprNode) {
-        printElements(": _no_type") // TODO: base this on the actual type
+        let type = printTypeNames ? node.type : .none
+
+        printElements(": \(type)")
     }
 
     // print Printable object details without a type string

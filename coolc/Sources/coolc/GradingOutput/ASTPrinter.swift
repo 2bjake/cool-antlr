@@ -7,11 +7,12 @@
 
 import Foundation
 
-// prints the AST in the format that PA2 grading scripts expect
-class PA2ASTPrinter: Visitor {
-    private let printer = PA2Printer()
+// prints the AST in the format that grading scripts expect
+class ASTPrinter: Visitor {
+    private let printer = Printer()
 
-    func printTree(_ node: ProgramNode) {
+    func printTree(_ node: ProgramNode, printTypeNames: Bool = true) {
+        printer.printTypeNames = printTypeNames
         visit(node)
     }
 
@@ -29,6 +30,8 @@ class PA2ASTPrinter: Visitor {
     }
 
     func visit(_ node: ClassNode) {
+        guard !node.classType.isBuiltInClass else { return }
+
         printer.printObject(node) {
             printer.printElements(node.classType, node.parentType, "\"\(node.location.fileName)\"", "(")
             visitChildren(node)
@@ -38,7 +41,7 @@ class PA2ASTPrinter: Visitor {
 
     func visit(_ node: AttributeNode) {
         printer.printObject(node) {
-            printer.printElements(node.name, node.type, PA2Printer.lineString(node))
+            printer.printElements(node.name, node.type, Printer.lineString(node))
             visitChildren(node)
         }
     }
@@ -112,7 +115,7 @@ class PA2ASTPrinter: Visitor {
     }
 
     func visit(_ node: NewExprNode) {
-        printer.printNode(node, elements: node.newType)
+        printer.printNode(node, elements: node.type)
     }
 
     func visit(_ node: ConditionalExprNode) {

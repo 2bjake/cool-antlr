@@ -1,31 +1,35 @@
 //
-//  TypeCheckSemanticAnalyzer.swift
+//  ClassFeatureAnalyzer.swift
 //
 //
 //  Created by Jake Foster on 8/13/20.
 //
 
-struct TypeCheckSemanticAnalyzer {
+struct ClassFeatureAnalyzer {
     private let program: ProgramNode
     private let objectClass: ClassNode
-    private let definedTypes: [ClassType]
+    private let allTypes: [ClassType]
     private var objectTypeTable = SymbolTable<ClassType>()
     private var methodTable = SymbolTable<MethodNode>()
     private var errorCount = 0
 
-    private mutating func printError(_ message: String, _ located: SourceLocated) {
+    private mutating func printFullError(_ message: String) {
         errorCount += 1
-        errPrint("\(located.location.fileName):\(located.location.lineNumber): \(message)")
+        errPrint(message)
     }
 
-    init(program: ProgramNode, objectClass: ClassNode) {
+    private mutating func printError(_ message: String, _ located: SourceLocated) {
+        printFullError("\(located.location.fileName):\(located.location.lineNumber): \(message)")
+    }
+
+    init(program: ProgramNode, allTypes: [ClassType], objectClass: ClassNode) {
         self.program = program
+        self.allTypes = allTypes
         self.objectClass = objectClass
-        definedTypes = program.classes.map(\.classType)
     }
 
     private func isDefinedType(_ type: ClassType, allowSelfType: Bool = true) -> Bool {
-        definedTypes.contains(type) || (allowSelfType && type == .selfType)
+        allTypes.contains(type) || (allowSelfType && type == .selfType)
     }
 
     mutating func checkAttribute(_ attribute: AttributeNode) {
@@ -114,10 +118,8 @@ struct TypeCheckSemanticAnalyzer {
         }
 
         if !classNode.classType.isBuiltInClass {
-            objectTypeTable.enterScope()
-            objectTypeTable.insert(id: .selfName, data: .selfType)
-            // TODO: classNode.features.typeCheck()
-            objectTypeTable.exitScope()
+            let errorMsgs = makeTypeChecker(objectTypeTable: objectTypeTable, allTypes: allTypes).check(classNode: classNode)
+            for errorMsg in errorMsgs { printFullError(errorMsg) }
         }
 
         classNode.childClasses.filter(\.classType.isInheritable).forEach { checkClass($0) }

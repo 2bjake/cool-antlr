@@ -1,5 +1,5 @@
 //
-//  ClassDeclSemanticAnalyzer.swift
+//  ClassDeclAnalyzer.swift
 //
 //
 //  Created by Jake Foster on 8/9/20.
@@ -10,7 +10,7 @@ struct SemanticError: Error {
     let lineNumber: Int
 }
 
-struct ClassDeclSemanticAnalyzer {
+struct ClassDeclAnalyzer {
     private var errCount = 0
     private var validClasses = [ClassType: ClassNode]()
 
@@ -124,7 +124,7 @@ struct ClassDeclSemanticAnalyzer {
     // Installs basic classes into the AST and verifies that all
     // class declarations are valid (including a check for inheritance cycles)
     // returns the root node of the class hierarchy (Object)
-    mutating func analyze(ast: inout ProgramNode) throws -> ClassNode {
+    mutating func analyze(ast: inout ProgramNode) throws -> (allTypes: [ClassType], objectClass: ClassNode) {
         for node in ast.classes {
             if checkClassRules(node) {
                 validClasses[node.classType] = node
@@ -147,7 +147,7 @@ struct ClassDeclSemanticAnalyzer {
         if errCount > 0 {
             throw CompilerError.semanticError
         } else {
-            return objectClass
+            return (Array(validClasses.keys), objectClass)
         }
     }
 }

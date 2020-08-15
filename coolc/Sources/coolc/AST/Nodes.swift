@@ -181,7 +181,16 @@ class DispatchExprNode: ExprNode {
     }
 }
 
-enum ArithOp { case plus, sub, mul, div }
+enum ArithOp: String {
+    case plus = "+"
+    case sub = "-"
+    case mul = "*"
+    case div = "/"
+}
+
+extension ArithOp: CustomStringConvertible {
+    var description: String { rawValue }
+}
 
 class ArithExprNode: ExprNode {
     let location: SourceLocation
@@ -198,7 +207,15 @@ class ArithExprNode: ExprNode {
     }
 }
 
-enum CompOp { case eq, lt, le }
+enum CompOp: String {
+    case eq = "="
+    case lt = "<"
+    case le = "<="
+}
+
+extension CompOp: CustomStringConvertible {
+    var description: String { rawValue }
+}
 
 class CompareExprNode: ExprNode {
     let location: SourceLocation
@@ -252,12 +269,11 @@ class ObjectExprNode: ExprNode {
 
 class NewExprNode: ExprNode {
     let location: SourceLocation
-    var type: ClassType = .none
-    let newType: ClassType
+    var type: ClassType
 
-    init(location: SourceLocation, newType: ClassType) {
+    init(location: SourceLocation, type: ClassType) {
         self.location = location
-        self.newType = newType
+        self.type = type
     }
 }
 

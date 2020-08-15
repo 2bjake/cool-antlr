@@ -28,7 +28,6 @@ extension IdSymbol {
     static let inInt = idTable.add("in_int")
     static let inString = idTable.add("in_string")
     static let length = idTable.add("length")
-    static let noClass = idTable.add("_no_class")
     static let noType = idTable.add("_no_type")
     static let outInt = idTable.add("out_int")
     static let outString = idTable.add("out_string")
