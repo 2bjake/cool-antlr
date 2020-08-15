@@ -103,6 +103,8 @@ class AttributeNode: Node {
     let name: IdSymbol
     let initBody: ExprNode
 
+    var hasInit: Bool { !(initBody is NoExprNode) }
+
     init(location: SourceLocation, type: ClassType, name: IdSymbol, initBody: ExprNode) {
         self.location = location
         self.type = type

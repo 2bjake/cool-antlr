@@ -34,6 +34,70 @@ class ClassTypeChecker: BaseVisitor {
         objectTypeTable.exitScope()
     }
 
+    override func visit(_ node: AttributeNode) {
+        if node.hasInit {
+            visit(node.initBody)
+            guard node.initBody.type != .none else { return }
+            guard hasConformance(node.initBody.type, to: node.type) else {
+                let msg = "Initialization type \(node.initBody.type) for attribute \(node.name) does not conform to type \(node.type)"
+                saveError(msg, node)
+                return
+            }
+        }
+    }
+
+    override func visit(_ node: MethodNode) {
+        // TODO
+    }
+
+    override func visit(_ node: LetExprNode) {
+        // TODO
+    }
+
+    override func visit(_ node: NewExprNode) {
+        // TODO
+    }
+
+    override func visit(_ node: CaseExprNode) {
+        // TODO
+    }
+
+    override func visit(_ node: LoopExprNode) {
+        // TODO
+    }
+
+    override func visit(_ node: AssignExprNode) {
+        // TODO
+    }
+
+    override func visit(_ node: IsvoidExprNode) {
+        // TODO
+    }
+
+    override func visit(_ node: NegateExprNode) {
+        // TODO
+    }
+
+    override func visit(_ node: ConditionalExprNode) {
+        // TODO
+    }
+
+    override func visit(_ node: NotExprNode) {
+        visitChildren(node)
+        guard node.expr.type != .none else { return }
+        guard node.expr.type == .bool else {
+            saveError("Argument of not is not of type bool", node)
+            return
+        }
+        node.type = .bool
+    }
+
+    override func visit(_ node: BlockExprNode) {
+        visitChildren(node)
+        guard node.exprs.allSatisfy({ $0.type != .none }) else { return }
+        node.type = node.exprs[node.exprs.count - 1].type
+    }
+
     override func visit(_ node: ArithExprNode) {
         visitChildren(node)
         guard node.expr1.type != .none && node.expr1.type != .none else { return }

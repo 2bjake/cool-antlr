@@ -9,7 +9,7 @@ class Bar inherits Foo {
 
 
 class Main inherits IO {
-    foo: Foo;
+    foo: Foo <- 2;
     bar: Bar;
     s: SELF_TYPE;
     main(): Int { s@Foo.x(2) };
