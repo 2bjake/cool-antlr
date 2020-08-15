@@ -1,16 +1,6 @@
+class Main { main() : Int {0 }; };
 
-class Foo {
-    x(y: Int): Int { 2 };
-};
+class A {
+  foo(x: Object) : SELF_TYPE {new A};
 
-class Bar inherits Foo {
-
-};
-
-
-class Main inherits IO {
-    foo: Foo <- 2;
-    bar: Bar;
-    s: SELF_TYPE;
-    main(): Int { s@Foo.x(2) };
 };

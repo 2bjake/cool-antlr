@@ -47,39 +47,113 @@ class ClassTypeChecker: BaseVisitor {
     }
 
     override func visit(_ node: MethodNode) {
-        // TODO
+        objectTypeTable.enterScope()
+        defer { objectTypeTable.exitScope() }
+
+        for formal in node.formals {
+            guard formal.name != .selfName else {
+                saveError("self cannot be used as a parameter name in function \(node.name)", node)
+                return
+            }
+
+            guard formal.type != .selfType else {
+                saveError("SELF_TYPE cannot be used as a parameter type in function \(node.name)", node)
+                return
+            }
+
+            objectTypeTable.insert(id: formal.name, data: formal.type)
+        }
+        visit(node.body)
+
+        if node.body.type == .selfType && node.type == .selfType {
+            return
+        }
+
+        guard hasConformance(node.body.type, to: node.type) else {
+            let msg = "The type \(node.body.type) returned from method \(node.name) does not conform to the specified return type \(node.type)"
+            saveError(msg, node)
+            return
+        }
     }
 
     override func visit(_ node: LetExprNode) {
         // TODO
+        visitChildren(node)
     }
 
     override func visit(_ node: NewExprNode) {
-        // TODO
+        guard node.newType == .selfType || classes[node.newType] != nil else {
+            saveError("'new' used with undefined class \(node.newType)", node)
+            return
+        }
+        node.type = node.newType
     }
 
     override func visit(_ node: CaseExprNode) {
         // TODO
+        visitChildren(node)
     }
 
     override func visit(_ node: LoopExprNode) {
         // TODO
+        visitChildren(node)
     }
 
     override func visit(_ node: AssignExprNode) {
         // TODO
+        visitChildren(node)
     }
 
     override func visit(_ node: IsvoidExprNode) {
-        // TODO
+        visitChildren(node)
+        guard node.expr.type != .none else { return }
+        node.type = .bool
     }
 
     override func visit(_ node: NegateExprNode) {
-        // TODO
+        visitChildren(node)
+        guard node.expr.type != .none else { return }
+        guard node.expr.type == .int else {
+            saveError("Negate argument does not have type Int", node)
+            return
+        }
+        node.type = .int
+    }
+
+    private func buildInheritancePath(_ type: ClassType) -> [ClassType] {
+        var cur: ClassNode? = classes[type]
+        var path = [ClassType]()
+        while cur != nil {
+            path.append(cur!.classType)
+            cur = classes[cur!.parentType]
+        }
+        return path
+    }
+
+    private func leastType(_ a: ClassType, _ b: ClassType) -> ClassType {
+        let aPath = buildInheritancePath(a)
+        let bPath = buildInheritancePath(b)
+
+        var ai = aPath.count - 1
+        var bi = bPath.count - 1
+        while ai >= 0 && bi >= 0 {
+            if (aPath[ai] != bPath[bi]) {
+                break;
+            }
+            ai -= 1
+            bi -= 1
+        }
+        return aPath[ai + 1];
     }
 
     override func visit(_ node: ConditionalExprNode) {
-        // TODO
+        visitChildren(node)
+        guard [node.predExpr, node.thenExpr, node.elseExpr].allSatisfy({ $0.type != .none }) else { return }
+        guard node.predExpr.type == .bool else {
+            saveError("If predicate must be of type bool", node)
+            return
+        }
+        node.type = leastType(node.thenExpr.type, node.elseExpr.type)
     }
 
     override func visit(_ node: NotExprNode) {

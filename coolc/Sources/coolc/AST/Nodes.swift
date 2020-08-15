@@ -276,11 +276,12 @@ class ObjectExprNode: ExprNode {
 
 class NewExprNode: ExprNode {
     let location: SourceLocation
-    var type: ClassType
+    var type: ClassType = .none
+    let newType: ClassType
 
-    init(location: SourceLocation, type: ClassType) {
+    init(location: SourceLocation, newType: ClassType) {
         self.location = location
-        self.type = type
+        self.newType = newType
     }
 }
 

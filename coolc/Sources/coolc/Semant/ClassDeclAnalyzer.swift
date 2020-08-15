@@ -131,11 +131,13 @@ struct ClassDeclAnalyzer {
             }
         }
 
-        if !validClasses.keys.contains(.main) {
-            printError(message: "Class Main is not defined.", location: ast.location)
+        if errCount > 0 {
+            throw CompilerError.semanticError
         }
 
-        if errCount > 0 {
+        if !validClasses.keys.contains(.main) {
+            errCount += 1
+            errPrint("Class Main is not defined.")
             throw CompilerError.semanticError
         }
 
