@@ -45,6 +45,25 @@ class ClassTypeChecker: BaseVisitor {
         node.type = .int
     }
 
+    override func visit(_ node: CompareExprNode) {
+        visitChildren(node)
+        guard node.expr1.type != .none && node.expr1.type != .none else { return }
+
+        if node.op == .eq && node.expr1.type.isConstant && node.expr2.type.isConstant {
+            guard node.expr1.type == node.expr2.type else {
+                saveError("Illegal comparison with a basic type", node)
+                return
+            }
+        } else {
+            guard node.expr1.type == .int && node.expr2.type == .int else {
+                let msg = "non-int arguments: \(node.expr1.type) \(node.op) \(node.expr2.type)"
+                saveError(msg, node)
+                return
+            }
+        }
+        node.type = .bool
+    }
+
     private func getMatchingMethod(named name: IdSymbol, withParamTypes paramTypes: [ClassType], on classNode: ClassNode) -> MethodNode? {
         if let method = classNode.methods[name] {
             let formalTypes = method.formals.map(\.type)

@@ -89,7 +89,7 @@ struct ClassDeclAnalyzer {
             makePrimitiveSlot(),
             makeMethod(name: .length, type: .int),
             makeMethod(name: .concat, type: .string, formals: [makeFormal(name: .arg, type: .string)]),
-            makeMethod(name: .substr, type: .string)
+            makeMethod(name: .substr, type: .string, formals: [makeFormal(name: .arg, type: .int), makeFormal(name: .arg2, type: .int)])
 
         ]))
 
