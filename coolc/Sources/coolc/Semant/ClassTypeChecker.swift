@@ -38,7 +38,7 @@ class ClassTypeChecker: BaseVisitor {
         if node.hasInit {
             visit(node.initBody)
             guard node.initBody.type != .none else { return }
-            guard hasConformance(node.initBody.type, to: node.type) else {
+            guard hasConformance(trueType(of:node.initBody.type), to: trueType(of: node.type)) else {
                 let msg = "Initialization type \(node.initBody.type) for attribute \(node.name) does not conform to type \(node.type)"
                 saveError(msg, node)
                 return
@@ -69,7 +69,7 @@ class ClassTypeChecker: BaseVisitor {
             return
         }
 
-        guard hasConformance(node.body.type, to: node.type) else {
+        guard hasConformance(trueType(of: node.body.type), to: node.type) else {
             let msg = "The type \(node.body.type) returned from method \(node.name) does not conform to the specified return type \(node.type)"
             saveError(msg, node)
             return
@@ -222,7 +222,7 @@ class ClassTypeChecker: BaseVisitor {
             saveError("If predicate must be of type bool", node)
             return
         }
-        node.type = leastType(node.thenExpr.type, node.elseExpr.type)
+        node.type = leastType(trueType(of: node.thenExpr.type), trueType(of: node.elseExpr.type))
     }
 
     override func visit(_ node: NotExprNode) {
@@ -256,8 +256,9 @@ class ClassTypeChecker: BaseVisitor {
         visitChildren(node)
         guard node.expr1.type != .none && node.expr1.type != .none else { return }
 
-        if node.op == .eq && node.expr1.type.isConstant && node.expr2.type.isConstant {
-            guard node.expr1.type == node.expr2.type else {
+        if node.op == .eq {
+            let isConstant = node.expr1.type.isConstant || node.expr2.type.isConstant
+            guard !isConstant || node.expr1.type == node.expr2.type else {
                 saveError("Illegal comparison with a basic type", node)
                 return
             }
@@ -339,7 +340,7 @@ class ClassTypeChecker: BaseVisitor {
             saveError(msg, node)
             return
         }
-        node.type = trueType(of: method.type)
+        node.type = method.type == .selfType ? node.expr.type : method.type
     }
 
     override func visit(_ node: ObjectExprNode) {

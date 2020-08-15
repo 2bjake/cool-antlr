@@ -26,7 +26,7 @@ extension CompOp: PA2Named {
         switch self {
             case .eq: return "_eq"
             case .lt: return "_lt"
-            case .le: return "_le"
+            case .le: return "_leq"
         }
     }
 }
