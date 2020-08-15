@@ -124,7 +124,7 @@ struct ClassDeclAnalyzer {
     // Installs basic classes into the AST and verifies that all
     // class declarations are valid (including a check for inheritance cycles)
     // returns the root node of the class hierarchy (Object)
-    mutating func analyze(ast: inout ProgramNode) throws -> (allTypes: [ClassType], objectClass: ClassNode) {
+    mutating func analyze(ast: inout ProgramNode) throws -> (classes: [ClassType: ClassNode], objectClass: ClassNode) {
         for node in ast.classes {
             if checkClassRules(node) {
                 validClasses[node.classType] = node
@@ -147,7 +147,7 @@ struct ClassDeclAnalyzer {
         if errCount > 0 {
             throw CompilerError.semanticError
         } else {
-            return (Array(validClasses.keys), objectClass)
+            return (validClasses, objectClass)
         }
     }
 }

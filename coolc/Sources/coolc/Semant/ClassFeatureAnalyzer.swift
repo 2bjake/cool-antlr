@@ -8,7 +8,7 @@
 struct ClassFeatureAnalyzer {
     private let program: ProgramNode
     private let objectClass: ClassNode
-    private let allTypes: [ClassType]
+    private let classes: [ClassType: ClassNode]
     private var objectTypeTable = SymbolTable<ClassType>()
     private var methodTable = SymbolTable<MethodNode>()
     private var errorCount = 0
@@ -22,14 +22,14 @@ struct ClassFeatureAnalyzer {
         printFullError("\(located.location.fileName):\(located.location.lineNumber): \(message)")
     }
 
-    init(program: ProgramNode, allTypes: [ClassType], objectClass: ClassNode) {
+    init(program: ProgramNode, classes: [ClassType: ClassNode], objectClass: ClassNode) {
         self.program = program
-        self.allTypes = allTypes
+        self.classes = classes
         self.objectClass = objectClass
     }
 
     private func isDefinedType(_ type: ClassType, allowSelfType: Bool = true) -> Bool {
-        allTypes.contains(type) || (allowSelfType && type == .selfType)
+        classes[type] != nil || (allowSelfType && type == .selfType)
     }
 
     mutating func checkAttribute(_ attribute: AttributeNode) {
@@ -110,7 +110,7 @@ struct ClassFeatureAnalyzer {
         objectTypeTable.enterScope()
         methodTable.enterScope()
         classNode.attributes.forEach { checkAttribute($0) }
-        classNode.methods.forEach { checkMethod($0) }
+        classNode.methods.values.forEach { checkMethod($0) }
 
         // check if Main class has a main method
         if classNode.classType == .main && methodTable.probe(.mainMethod) == nil {
@@ -118,7 +118,7 @@ struct ClassFeatureAnalyzer {
         }
 
         if !classNode.classType.isBuiltInClass {
-            let errorMsgs = makeTypeChecker(objectTypeTable: objectTypeTable, allTypes: allTypes).check(classNode: classNode)
+            let errorMsgs = makeTypeChecker(objectTypeTable: objectTypeTable, classes: classes).check(classNode: classNode)
             for errorMsg in errorMsgs { printFullError(errorMsg) }
         }
 

@@ -1,4 +1,15 @@
 
+class Foo {
+    x(y: Int): Int { 2 };
+};
+
+class Bar inherits Foo {
+
+};
+
+
 class Main inherits IO {
-    main(): Int { 2 + "hi"};
+    foo: Foo;
+    bar: Bar;
+    main(): Int { bar@Foo.x(2) };
 };

@@ -9,8 +9,8 @@ struct SemanticAnalyzer {
     var classAnalyzer = ClassDeclAnalyzer()
 
     mutating func analyze(program: inout ProgramNode) throws {
-        let (allTypes, objectClass) = try classAnalyzer.analyze(ast: &program)
-        var featureAnalyzer = ClassFeatureAnalyzer(program: program, allTypes: allTypes, objectClass: objectClass)
+        let (allClasses, objectClass) = try classAnalyzer.analyze(ast: &program)
+        var featureAnalyzer = ClassFeatureAnalyzer(program: program, classes: allClasses, objectClass: objectClass)
         try featureAnalyzer.analyze()
     }
 }

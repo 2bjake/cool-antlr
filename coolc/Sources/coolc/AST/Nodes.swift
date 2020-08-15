@@ -42,10 +42,15 @@ class ClassNode: Node {
     let classType: ClassType
     let parentType: ClassType
     let features: [Feature]
-    lazy private(set) var methods: [MethodNode] = {
-        features.compactMap {
+
+    lazy private(set) var methods: [IdSymbol: MethodNode] = {
+        let methodList: [MethodNode] = features.compactMap {
             if case .method(let method) = $0 { return method }
             return nil
+        }
+
+        return methodList.reduce(into: [:]) { result, methodNode in
+            result[methodNode.name] = methodNode
         }
     }()
 
