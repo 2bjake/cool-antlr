@@ -1,20 +1,13 @@
 //
-//  TypeChecker.swift
+//  ClassTypeChecker.swift
 //
 //
 //  Created by Jake Foster on 8/13/20.
 //
 
-protocol ClassTypeChecker {
-    func check(classNode: ClassNode) -> [String]
-}
-
-func makeTypeChecker(objectTypeTable: SymbolTable<ClassType>, classes: [ClassType: ClassNode]) -> ClassTypeChecker {
-    ClassTypeCheckerVisitor(objectTypeTable: objectTypeTable, classes: classes)
-}
-
-private class ClassTypeCheckerVisitor: BaseVisitor, ClassTypeChecker {
-    private var currentType: ClassType = .none
+class ClassTypeChecker: BaseVisitor {
+    private var classNode: ClassNode
+    private var classType: ClassType { classNode.classType }
     private var objectTypeTable: SymbolTable<ClassType>
     private let classes: [ClassType: ClassNode]
     private var errors = [String]()
@@ -23,13 +16,13 @@ private class ClassTypeCheckerVisitor: BaseVisitor, ClassTypeChecker {
         errors.append("\(located.location.fileName):\(located.location.lineNumber): \(message)")
     }
 
-    init(objectTypeTable: SymbolTable<ClassType>, classes: [ClassType: ClassNode]) {
+    init(classNode: ClassNode, objectTypeTable: SymbolTable<ClassType>, classes: [ClassType: ClassNode]) {
+        self.classNode = classNode
         self.objectTypeTable = objectTypeTable
         self.classes = classes
     }
 
-    func check(classNode: ClassNode) -> [String] {
-        currentType = classNode.classType
+    func check() -> [String] {
         visit(classNode)
         return errors
     }
@@ -55,7 +48,13 @@ private class ClassTypeCheckerVisitor: BaseVisitor, ClassTypeChecker {
     private func getMatchingMethod(named name: IdSymbol, withParamTypes paramTypes: [ClassType], on classNode: ClassNode) -> MethodNode? {
         if let method = classNode.methods[name] {
             let formalTypes = method.formals.map(\.type)
-            guard formalTypes == paramTypes else { return nil }
+            guard formalTypes.count == paramTypes.count else { return nil }
+
+            for i in 0..<formalTypes.count {
+                guard hasConformance(paramTypes[i], to: formalTypes[i]) else {
+                    return nil
+                }
+            }
             return method
         } else if let parentNode = classes[classNode.parentType] {
             return getMatchingMethod(named: name, withParamTypes: paramTypes, on: parentNode)
@@ -65,13 +64,42 @@ private class ClassTypeCheckerVisitor: BaseVisitor, ClassTypeChecker {
     }
 
     private func trueType(of type: ClassType) -> ClassType {
-        type == .selfType ? currentType : type
+        type == .selfType ? classType : type
+    }
+
+    private func hasConformance(_ classNode: ClassNode, to superNode: ClassNode) -> Bool {
+        return hasConformance(classNode.classType, to: superNode.classType)
+    }
+
+    private func hasConformance(_ classType: ClassType, to superType: ClassType) -> Bool {
+        var current: ClassNode? = classes[classType]
+        while current != nil {
+            if current!.classType == superType { return true }
+            current = classes[current!.parentType]
+        }
+        return false
+    }
+
+    private func getDispatchClass(_ node: DispatchExprNode) -> ClassNode? {
+        guard let dynamicClassNode = classes[trueType(of: node.expr.type)] else { return nil }
+        if !node.isStaticDispatch { return dynamicClassNode }
+
+        guard let staticClassNode = classes[node.staticClass] else {
+            saveError("Static type \(node.staticClass) is undefined", node)
+            return nil
+        }
+
+        guard hasConformance(dynamicClassNode, to: staticClassNode) else {
+            saveError("Expression does not conform to specified static dispatch type \(node.staticClass)", node)
+            return nil
+        }
+        return staticClassNode
     }
 
     override func visit(_ node: DispatchExprNode) {
         visit(node.expr)
         guard node.expr.type != .none else { return }
-        guard let dispatchClass = classes[trueType(of: node.expr.type)] else { return }
+        guard let dispatchClass = getDispatchClass(node) else { return }
 
         var argTypes = [ClassType]()
         for arg in node.args {
@@ -85,7 +113,7 @@ private class ClassTypeCheckerVisitor: BaseVisitor, ClassTypeChecker {
             saveError(msg, node)
             return
         }
-        node.type = method.type == .selfType ? currentType : method.type
+        node.type = trueType(of: method.type)
     }
 
     override func visit(_ node: ObjectExprNode) {

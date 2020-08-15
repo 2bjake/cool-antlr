@@ -11,5 +11,6 @@ class Bar inherits Foo {
 class Main inherits IO {
     foo: Foo;
     bar: Bar;
-    main(): Int { bar@Foo.x(2) };
+    s: SELF_TYPE;
+    main(): Int { s@Foo.x(2) };
 };

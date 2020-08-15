@@ -118,7 +118,7 @@ struct ClassFeatureAnalyzer {
         }
 
         if !classNode.classType.isBuiltInClass {
-            let errorMsgs = makeTypeChecker(objectTypeTable: objectTypeTable, classes: classes).check(classNode: classNode)
+            let errorMsgs = ClassTypeChecker(classNode: classNode, objectTypeTable: objectTypeTable, classes: classes).check()
             for errorMsg in errorMsgs { printFullError(errorMsg) }
         }
 
