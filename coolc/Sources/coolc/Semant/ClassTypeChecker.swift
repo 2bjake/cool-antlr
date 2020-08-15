@@ -107,8 +107,39 @@ class ClassTypeChecker: BaseVisitor {
     }
 
     override func visit(_ node: CaseExprNode) {
-        // TODO
-        visitChildren(node)
+        visit(node.expr)
+        guard node.expr.type != .none else { return }
+        var types = Set<ClassType>()
+        var joinType = ClassType.none
+        for branch in node.branches {
+            guard branch.bindName != .selfName else {
+                saveError("Cannot use 'self' as name of branch variable", branch)
+                return
+            }
+
+            guard branch.bindType != .selfType else {
+                saveError("Cannot use SELF_TYPE as branch type", branch)
+                return
+            }
+
+            let (inserted, _) = types.insert(branch.bindType)
+            guard inserted else {
+                saveError("The same type \(branch.bindType) cannot be specified in multiple case branches", branch)
+                return
+            }
+            objectTypeTable.enterScope()
+            objectTypeTable.insert(id: branch.bindName, data: branch.bindType)
+            visit(branch.body)
+            objectTypeTable.exitScope()
+            guard branch.body.type != .none else { return }
+
+            if joinType == .none {
+                joinType = branch.body.type
+            } else {
+                joinType = leastType(joinType, branch.body.type)
+            }
+        }
+        node.type = joinType
     }
 
     override func visit(_ node: LoopExprNode) {
