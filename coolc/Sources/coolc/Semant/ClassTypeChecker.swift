@@ -77,8 +77,25 @@ class ClassTypeChecker: BaseVisitor {
     }
 
     override func visit(_ node: LetExprNode) {
-        // TODO
-        visitChildren(node)
+        guard node.varName != .selfName else {
+            saveError("Cannot assign a value to self", node)
+            return
+        }
+
+        if node.hasInit {
+            visit(node.initExpr)
+            guard node.initExpr.type != .none else { return }
+            guard hasConformance(trueType(of: node.initExpr.type), to: trueType(of: node.varType)) else {
+                saveError("Initialization type \(node.initExpr.type) for let \(node.varType) does not conform to type \(node.varType)", node)
+                return
+            }
+        }
+
+        objectTypeTable.enterScope()
+        objectTypeTable.insert(id: node.varName, data: node.varType)
+        visit(node.bodyExpr)
+        node.type = node.bodyExpr.type
+        objectTypeTable.exitScope()
     }
 
     override func visit(_ node: NewExprNode) {
@@ -95,13 +112,34 @@ class ClassTypeChecker: BaseVisitor {
     }
 
     override func visit(_ node: LoopExprNode) {
-        // TODO
         visitChildren(node)
+        guard node.predExpr.type != .none && node.body.type != .none else { return }
+        guard node.predExpr.type == .bool else {
+            saveError("Loop predicate must be of type Bool", node)
+            return
+        }
+        node.type = .object
     }
 
     override func visit(_ node: AssignExprNode) {
-        // TODO
-        visitChildren(node)
+        guard node.varName != .selfName else {
+            saveError("Cannot assign a value to self", node)
+            return
+        }
+
+        guard let varType = objectTypeTable.lookup(node.varName) else {
+            saveError("\(node.varName) is undefined", node)
+            return
+        }
+
+        visit(node.expr)
+        guard node.expr.type != .none else { return }
+
+        guard hasConformance(node.expr.type, to: varType) else {
+            saveError("Assignment expression type \(node.expr.type) does not conform to type \(varType)", node)
+            return
+        }
+        node.type = node.expr.type
     }
 
     override func visit(_ node: IsvoidExprNode) {
@@ -208,7 +246,7 @@ class ClassTypeChecker: BaseVisitor {
             guard formalTypes.count == paramTypes.count else { return nil }
 
             for i in 0..<formalTypes.count {
-                guard hasConformance(paramTypes[i], to: formalTypes[i]) else {
+                guard hasConformance(trueType(of: paramTypes[i]), to: formalTypes[i]) else {
                     return nil
                 }
             }

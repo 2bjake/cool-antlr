@@ -351,6 +351,7 @@ class LetExprNode: ExprNode {
     let varType: ClassType
     let initExpr: ExprNode
     let bodyExpr: ExprNode
+    var hasInit: Bool { !(initExpr is NoExprNode) }
 
     init(location: SourceLocation, varName: IdSymbol, varType: ClassType, initExpr: ExprNode, bodyExpr: ExprNode) {
         self.location = location
