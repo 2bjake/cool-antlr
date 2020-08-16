@@ -5,27 +5,32 @@
 //  Created by Jake Foster on 8/13/20.
 //
 
+typealias TypeChecker = (_ classNode: ClassNode, _ objectTypeTable: SymbolTable<ClassType>, _ classes: [ClassType: ClassNode]) -> [String]
+
 struct ClassFeatureAnalyzer {
     private let program: ProgramNode
-    private let objectClass: ClassNode
     private let classes: [ClassType: ClassNode]
+    private let objectClass: ClassNode
+
     private var objectTypeTable = SymbolTable<ClassType>()
     private var methodTable = SymbolTable<MethodNode>()
-    private var errorCount = 0
+    private var hasError = false
 
-    private mutating func printFullError(_ message: String) {
-        errorCount += 1
-        errPrint(message)
-    }
-
-    private mutating func printError(_ message: String, _ located: SourceLocated) {
-        printFullError("\(located.location.fileName):\(located.location.lineNumber): \(message)")
-    }
+    var typeChecker: TypeChecker = {_, _, _ in [] }
 
     init(program: ProgramNode, classes: [ClassType: ClassNode], objectClass: ClassNode) {
         self.program = program
         self.classes = classes
         self.objectClass = objectClass
+    }
+
+    private mutating func printFullError(_ message: String) {
+        hasError = true
+        errPrint(message)
+    }
+
+    private mutating func printError(_ message: String, _ located: SourceLocated) {
+        printFullError("\(located.location.fileName):\(located.location.lineNumber): \(message)")
     }
 
     private func isDefinedType(_ type: ClassType, allowSelfType: Bool = true) -> Bool {
@@ -118,7 +123,7 @@ struct ClassFeatureAnalyzer {
         }
 
         if !classNode.classType.isBuiltInClass {
-            let errorMsgs = ClassTypeChecker(classNode: classNode, objectTypeTable: objectTypeTable, classes: classes).check()
+            let errorMsgs = typeChecker(classNode, objectTypeTable, classes)
             for errorMsg in errorMsgs { printFullError(errorMsg) }
         }
 
@@ -129,7 +134,7 @@ struct ClassFeatureAnalyzer {
 
     mutating func analyze() throws {
         checkClass(objectClass)
-        if errorCount > 0 {
+        if hasError {
             throw CompilerError.semanticError
         }
     }

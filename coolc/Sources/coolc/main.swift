@@ -27,7 +27,7 @@ func buildProgramTree(parser: CoolParser, fileName: String) throws -> ProgramNod
 
     let tree = try parser.program()
 
-    guard errorListener.errorCount == 0 else {
+    guard !errorListener.hasError else {
         throw CompilerError.parseError
     }
 
@@ -48,8 +48,7 @@ func pa2(parser: CoolParser, fileName: String) throws {
 
 func pa3(parser: CoolParser, fileName: String) throws {
     var program = try buildProgramTree(parser: parser, fileName: fileName)
-    var analyzer = SemanticAnalyzer()
-    try analyzer.analyze(program: &program)
+    try SemanticAnalyzer.analyze(program: &program)
     let astPrinter = ASTPrinter()
     astPrinter.printTree(program)
 }

@@ -12,14 +12,14 @@ class ClassTypeChecker: BaseVisitor {
     private let classes: [ClassType: ClassNode]
     private var errors = [String]()
 
-    private func saveError(_ message: String, _ located: SourceLocated) {
-        errors.append("\(located.location.fileName):\(located.location.lineNumber): \(message)")
-    }
-
     init(classNode: ClassNode, objectTypeTable: SymbolTable<ClassType>, classes: [ClassType: ClassNode]) {
         self.classNode = classNode
         self.objectTypeTable = objectTypeTable
         self.classes = classes
+    }
+
+    private func saveError(_ message: String, _ located: SourceLocated) {
+        errors.append("\(located.location.fileName):\(located.location.lineNumber): \(message)")
     }
 
     func check() -> [String] {
@@ -38,7 +38,7 @@ class ClassTypeChecker: BaseVisitor {
         if node.hasInit {
             visit(node.initBody)
             guard node.initBody.type != .none else { return }
-            guard hasConformance(trueType(of:node.initBody.type), to: trueType(of: node.type)) else {
+            guard hasConformance(trueType(of: node.initBody.type), to: trueType(of: node.type)) else {
                 let msg = "Initialization type \(node.initBody.type) for attribute \(node.name) does not conform to type \(node.type)"
                 saveError(msg, node)
                 return
@@ -206,13 +206,13 @@ class ClassTypeChecker: BaseVisitor {
         var ai = aPath.count - 1
         var bi = bPath.count - 1
         while ai >= 0 && bi >= 0 {
-            if (aPath[ai] != bPath[bi]) {
-                break;
+            if aPath[ai] != bPath[bi] {
+                break
             }
             ai -= 1
             bi -= 1
         }
-        return aPath[ai + 1];
+        return aPath[ai + 1]
     }
 
     override func visit(_ node: ConditionalExprNode) {

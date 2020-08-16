@@ -51,7 +51,7 @@ class PA2ErrorStrategy: DefaultErrorStrategy {
 }
 
 class PA2ErrorListener: BaseErrorListener {
-    public private(set) var errorCount = 0
+    public private(set) var hasError = false
 
     private let fileName: String
 
@@ -64,7 +64,7 @@ class PA2ErrorListener: BaseErrorListener {
     }
 
     override public func syntaxError<T>(_: Recognizer<T>, _: AnyObject?, _ line: Int, _: Int, _ msg: String, _: AnyObject?) {
-        errorCount += 1
+        hasError = true
         if Parser.ConsoleError {
             printError(msg, line)
         }

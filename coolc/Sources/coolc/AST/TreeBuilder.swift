@@ -20,24 +20,20 @@ func makeBuilder(fileName: String) -> TreeBuilder {
 private class TreeBuilderVisitor: CoolBaseVisitor<Node>, TreeBuilder {
 
     private let fileName: String
-    private var errorCount: Int = 0
+    private var hasError = false
 
     init(fileName: String) {
         self.fileName = fileName
     }
 
     private func printError(_ location: String, _ line: Int) {
-        errorCount += 1
+        hasError = true
         let msg = makeErrorMsg(at: location)
         errPrint("\"\(fileName)\", line \(line): \(msg)")
     }
 
     private func makeLocation(_ ctx: ParserRuleContext) -> SourceLocation {
         .init(fileName: fileName, lineNumber: ctx.lineNum)
-    }
-
-    private func printError(_ error: SemanticError) {
-        errPrint("\(fileName):\(error.lineNumber): \(error.message)")
     }
 
     override func visit(_ tree: ParseTree) -> Node {
@@ -53,7 +49,7 @@ private class TreeBuilderVisitor: CoolBaseVisitor<Node>, TreeBuilder {
     }
 
     func build(_ program: CoolParser.ProgramContext) throws -> ProgramNode {
-        guard let programNode = visit(program) as? ProgramNode, errorCount == 0 else {
+        guard let programNode = visit(program) as? ProgramNode, !hasError else {
             throw CompilerError.parseError
         }
         return programNode

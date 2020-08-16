@@ -5,17 +5,12 @@
 //  Created by Jake Foster on 8/9/20.
 //
 
-struct SemanticError: Error {
-    let message: String
-    let lineNumber: Int
-}
-
 struct ClassDeclAnalyzer {
-    private var errCount = 0
+    private var hasError = false
     private var validClasses = [ClassType: ClassNode]()
 
     private mutating func printError(message: String, location: SourceLocation) {
-        errCount += 1
+        hasError = true
         errPrint("\(location.fileName):\(location.lineNumber): \(message)")
     }
 
@@ -131,12 +126,12 @@ struct ClassDeclAnalyzer {
             }
         }
 
-        if errCount > 0 {
+        if hasError {
             throw CompilerError.semanticError
         }
 
         if !validClasses.keys.contains(.main) {
-            errCount += 1
+            hasError = true
             errPrint("Class Main is not defined.")
             throw CompilerError.semanticError
         }
@@ -146,7 +141,7 @@ struct ClassDeclAnalyzer {
         // check inheritance
         validClasses.values.forEach { checkClassInheritance($0) }
 
-        if errCount > 0 {
+        if hasError {
             throw CompilerError.semanticError
         } else {
             return (validClasses, objectClass)

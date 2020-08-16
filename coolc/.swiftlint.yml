@@ -8,3 +8,6 @@ excluded:
   - Sources/coolc/gen
   - .build
   - Package.swift
+
+type_body_length:
+  - 250 # warning
